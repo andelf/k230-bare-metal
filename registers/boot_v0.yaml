@@ -1,0 +1,95 @@
+block/BOOT:
+  description: Boot management. 0x9110_2000
+  items:
+    # Global power control register
+    - name: SOC_SLEEP_CTL
+      description: soc power control
+      byte_offset: 0x6c
+    - name: SOC_WAKUP_SRC
+      description: soc wakeup source
+      byte_offset: 0x78
+    - name: SYS_CTL_INT0_RAW
+      description: module powerdown raw status
+      byte_offset: 0x90
+    - name: SYS_CTL_INT0_EN
+      description: module powerdown interrupt enable
+      byte_offset: 0x94
+    - name: SYS_CTL_INT0_STAT
+      description: module powerdown status
+      byte_offset: 0x98
+    - name: SYS_CTL_INT1_RAW
+      description: module powerup raw status
+      byte_offset: 0xa0
+    - name: SYS_CTL_INT1_EN
+      description: module powerup interrupt enable
+      byte_offset: 0xa4
+    - name: SYS_CTL_INT1_STAT
+      description: module powerup status
+      byte_offset: 0xa8
+    - name: SYS_CTL_INT2_RAW
+      description: sleep mode raw status
+      byte_offset: 0xb0
+    - name: SYS_CTL_INT2_EN
+      description: sleep mode interrupt enable
+      byte_offset: 0xb4
+    - name: SYS_CTL_INT2_STAT
+      description: sleep mode status
+      byte_offset: 0xb8
+    - name: SOC_SLEEP_MASK
+      description: module sleep mask
+      byte_offset: 0x118
+    # PLL configuration register base address
+    - name: PLL0_CFG0
+      description: pll0 configuration
+      byte_offset: 0x0
+    - name: PLL0_CFG1
+      description: pll0 configuration
+      byte_offset: 0x4
+    - name: PLL0_CTL
+      description: pll0 configuration
+      byte_offset: 0x8
+    - name: PLL0_STAT
+      description: pll0 status
+      byte_offset: 0xc
+    - name: PLL1_CFG0
+      description: pll1 configuration
+      byte_offset: 0x10
+    - name: PLL1_CFG1
+      description: pll1 configuration
+      byte_offset: 0x14
+    - name: PLL1_CTL
+      description: pll1 configuration
+      byte_offset: 0x18
+    - name: PLL1_STAT
+      description: pll1 status
+      byte_offset: 0x1c
+    - name: PLL2_CFG0
+      description: pll2 configuration
+      byte_offset: 0x20
+    - name: PLL2_CFG1
+      description: pll2 configuration
+      byte_offset: 0x24
+    - name: PLL2_CTL
+      description: pll2 configuration
+      byte_offset: 0x28
+    - name: PLL2_STAT
+      description: pll2 status
+      byte_offset: 0x2c
+    - name: PLL3_CFG0
+      description: pll3 configuration
+      byte_offset: 0x30
+    - name: PLL3_CFG1
+      description: pll3 configuration
+      byte_offset: 0x34
+    - name: PLL3_CTL
+      description: pll3 configuration
+      byte_offset: 0x38
+    - name: PLL3_STAT
+      description: pll3 status
+      byte_offset: 0x3c
+
+
+    # By guess
+    - name: CORE_RUN_ADDR
+      description: Core run address
+      byte_offset: 0x104

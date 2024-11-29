@@ -1,0 +1,11 @@
+[workspace]
+members = ["pac"]
+
+[package]
+name = "k230-bare-metal"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pac = { path = "./pac" }
+uart8250 = { version = "0.6.0", features = ["fmt"] }

@@ -1,0 +1,186 @@
+block/PWR:
+  description: Module power control register. 0x9110_3000
+  items:
+    - name: CPU0_PWR_TIM
+      description: cpu0 power control timer parameter
+      byte_offset: 0x00
+    - name: CPU0_LPI_TIM
+      description: cpu0 NOC LPI control timer parameter
+      byte_offset: 0x04
+    - name: CPU0_PWR_LPI_CTL
+      description: cpu0 power control
+      byte_offset: 0x08
+    - name: CPU0_PWR_LPI_STAT
+      description: cpu0 power status
+      byte_offset: 0x0c
+    - name: CPU1_PWR_TIM
+      description: cpu1 power control timer parameter
+      byte_offset: 0x10
+    - name: CPU1_LPI_TIM
+      description: cpu1 NOC LPI control timer parameter
+      byte_offset: 0x14
+    - name: CPU1_PWR_LPI_CTL
+      description: cpu1 power control
+      byte_offset: 0x18
+    - name: CPU1_PWR_LPI_STAT
+      description: cpu1 power status
+      byte_offset: 0x1c
+    - name: AI_PWR_TIM
+      description: ai power control timer parameter
+      byte_offset: 0x20
+    - name: AI_LPI_TIM
+      description: ai NOC LPI control timer parameter
+      byte_offset: 0x24
+    - name: AI_PWR_LPI_CTL
+      description: ai power control
+      byte_offset: 0x28
+    - name: AI_PWR_LPI_STAT
+      description: ai power status
+      byte_offset: 0x2c
+    - name: DISP_PWR_TIM
+      description: disp power control timer parameter
+      byte_offset: 0x30
+    - name: DISP_LPI_TIM
+      description: disp NOC LPI control timer parameter
+      byte_offset: 0x34
+    - name: DISP_GPU_TIM
+      description: gpu LPI control timer parameter
+      byte_offset: 0x38
+    - name: DISP_LPI_CTL
+      description: disp power control
+      byte_offset: 0x3c
+    - name: DISP_LPI_STAT
+      description: disp power status
+      byte_offset: 0x40
+    - name: SHRM_PWR_TIM
+      description: shrm power control timer parameter
+      byte_offset: 0x60
+    - name: SHRM_LPI_TIM
+      description: shrm NOC LPI control timer parameter
+      byte_offset: 0x64
+    - name: SHRM_PWR_LPI_CTL
+      description: shrm power control
+      byte_offset: 0x68
+    - name: SHRM_PWR_LPI_STAT
+      description: shrm power status
+      byte_offset: 0x6c
+    - name: VPU_PWR_TIM
+      description: vpu power control timer parameter
+      byte_offset: 0x70
+    - name: VPU_LPI_TIM
+      description: vpu NOC LPI control timer parameter
+      byte_offset: 0x74
+    - name: VPU_QCH_TIM
+      description: vpu qchannel control timer parameter
+      byte_offset: 0x78
+    - name: VPU_PWR_LPI_CTL
+      description: vpu power control
+      byte_offset: 0x7c
+    - name: VPU_LPI_STAT
+      description: vpu power status
+      byte_offset: 0x80
+    - name: MCTL_PWR_TIM
+      description: MCTRL power control timer parameter
+      byte_offset: 0x90
+    - name: MCTL_NOC_LPI_TIM
+      description: MCTRL NOC LPI control timer parameter
+      byte_offset: 0x94
+    - name: MCTL_AXI_LPI_TIM
+      description: MCTRL ACI LPI control timer parameter
+      byte_offset: 0x98
+    - name: MCTL_PWR_LPI_CTL
+      description: MCTRLI power control
+      byte_offset: 0x9c
+    - name: MCTL_CLOCK_SWITCH
+      description: MCTRLI clock switch
+      byte_offset: 0xa0
+    - name: MCTL_LPI_STAT
+      description: MCTRLI power status
+      byte_offset: 0xa4
+    - name: DPU_PWR_TIM
+      description: dpu power control timer parameter
+      byte_offset: 0x100
+    - name: DPU_LPI_TIM
+      description: dpu NOC LPI control timer parameter
+      byte_offset: 0x104
+    - name: DPU_PWR_LPI_CTL
+      description: dpu power control
+      byte_offset: 0x108
+    - name: DPU_PWR_LPI_STAT
+      description: dpu power status
+      byte_offset: 0x10c
+    - name: HI_PWR_TIM
+      description: hi power control timer parameter
+      byte_offset: 0x110
+    - name: HI_LPI_TIM
+      description: hi NOC LPI control timer parameter
+      byte_offset: 0x114
+    - name: HI_PWR_LPI_CTL
+      description: hi power control
+      byte_offset: 0x118
+    - name: HI_LPI_STAT
+      description: hi power status
+      byte_offset: 0x11c
+    - name: LS_PWR_TIM
+      description: ls power control timer parameter
+      byte_offset: 0x120
+    - name: LS_LPI_TIM
+      description: ls NOC LPI control timer parameter
+      byte_offset: 0x124
+    - name: LS_PWR_LPI_CTL
+      description: ls power control
+      byte_offset: 0x128
+    - name: LS_LPI_STAT
+      description: ls power status
+      byte_offset: 0x12c
+    - name: SEC_PWR_TIM
+      description: sec power control timer parameter
+      byte_offset: 0x130
+    - name: SEC_LPI_TIM
+      description: sec NOC LPI control timer parameter
+      byte_offset: 0x134
+    - name: SEC_PWR_LPI_CTL
+      description: sec power control
+      byte_offset: 0x138
+    - name: SEC_PWR_LPI_STAT
+      description: sec power status
+      byte_offset: 0x13c
+    - name: ISP_PWR_TIM
+      description: isp power control timer parameter
+      byte_offset: 0x140
+    - name: ISP_LPI_TIM
+      description: isp NOC LPI control timer parameter
+      byte_offset: 0x144
+    - name: ISP_PWR_LPI_CTL
+      description: isp power control
+      byte_offset: 0x148
+    - name: ISP_PWR_LPI_STAT
+      description: isp power status
+      byte_offset: 0x14c
+    - name: PMU_PWR_TIM
+      description: PMU power control timer parameter
+      byte_offset: 0x150
+    - name: PMU_LPI_TIM
+      description: PMU NOC LPI control timer parameter
+      byte_offset: 0x154
+    - name: PMU_PWR_LPI_CTL
+      description: PMU power control
+      byte_offset: 0x158
+    - name: PMU_PWR_LPI_STAT
+      description: PMU power status
+      byte_offset: 0x15c
+    - name: SRAM0_REPAIR_TIM
+      description: sram repair timer
+      byte_offset: 0x160
+    - name: SSYS_CTL_GPIO_CTL
+      description: gpio wakeup control
+      byte_offset: 0x164
+    - name: SSYS_CTL_GPIO_EN0
+      description: gpio wakeup enable
+      byte_offset: 0x170
+    - name: SSYS_CTL_GPIO_EN1
+      description: gpio wakeup enable
+      byte_offset: 0x174
+    - name: CPU_REPAIR_TIM
+      description: cpu wait repaire time
+      byte_offset: 0x178

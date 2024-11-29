@@ -1,0 +1,126 @@
+block/RMU:
+  description: Reset Management Unit. 0x9110_1000
+  items:
+    - name: CPU0_RST_TIM
+      description: cpu0 reset time control
+      byte_offset: 0x0
+    - name: CPU0_RST_CTL
+      description: cpu0 reset control
+      byte_offset: 0x4
+    - name: CPU1_RST_TIM
+      description: cpu1 reset time control
+      byte_offset: 0x8
+    - name: CPU1_RST_CTL
+      description: cpu1 reset control
+      byte_offset: 0xc
+    - name: AI_RST_TIM
+      description: AI reset time control
+      byte_offset: 0x10
+    - name: AI_RST_CTL
+      description: AI reset control
+      byte_offset: 0x14
+    - name: VPU_RST_TIM
+      description: VPU reset time control
+      byte_offset: 0x18
+    - name: VPU_RST_CTL
+      description: VPU reset control
+      byte_offset: 0x1c
+    - name: SOC_CTL_RST_CTL
+      description: soc ctl reset control
+      byte_offset: 0x20
+    - name: LOSYS_RST_CTL
+      description: lo sys reset control
+      byte_offset: 0x24
+    - name: HISYS_HCLK_TIM
+      description: hi sys reset time control
+      byte_offset: 0x28
+    - name: HISYS_RST_CTL
+      description: hi sys reset control
+      byte_offset: 0x2c
+    - name: SDCTL_RST_TIM
+      description: sd reset time control
+      byte_offset: 0x30
+    - name: SDC_RST_CTL
+      description: sd reset control
+      byte_offset: 0x34
+    - name: USB_RST_TIM
+      description: usb reset time control
+      byte_offset: 0x38
+    - name: USB_RST_CTL
+      description: usb reset control
+      byte_offset: 0x3c
+    - name: SPI_RST_TIM
+      description: spi reset time control
+      byte_offset: 0x40
+    - name: SPI_RST_CTL
+      description: spi reset control
+      byte_offset: 0x44
+    - name: SEC_SYS_RST_TIM
+      description: sec reset time control
+      byte_offset: 0x48
+    - name: SEC_RST_CTL
+      description: sec reset control
+      byte_offset: 0x4c
+    - name: DMAC_RST_TIM
+      description: dmac reset time control
+      byte_offset: 0x50
+    - name: DMA_RST_CTL
+      description: dmac reset control
+      byte_offset: 0x54
+    - name: DECOMPRESS_RST_TIM
+      description: decompress reset time control
+      byte_offset: 0x58
+    - name: DECOMPRESS_RST_CTL
+      description: decompress reset control
+      byte_offset: 0x5c
+    - name: SRAM_RST_TIM
+      description: sram reset time control
+      byte_offset: 0x60
+    - name: SRAM_RST_CTL
+      description: sram reset control
+      byte_offset: 0x64
+    - name: NONAI2D_RST_TIM
+      description: nonai-2d reset time control
+      byte_offset: 0x68
+    - name: NONAI2D_RST_CTL
+      description: nonai-2d reset control
+      byte_offset: 0x6c
+    - name: MCTL_RST_TIM
+      description: ddrc reset time control
+      byte_offset: 0x70
+    - name: MCTL_RST_CTL
+      description: ddrc reset control
+      byte_offset: 0x74
+    - name: ISP_RST_TIM
+      description: isp reset time control
+      byte_offset: 0x78
+    - name: ISP_DW_RST_TIM
+      description: isp de reset time control
+      byte_offset: 0x7c
+    - name: ISP_RST_CTL
+      description: isp reset control
+      byte_offset: 0x80
+    - name: DPU_RST_TIM
+      description: DPU reset time control
+      byte_offset: 0x84
+    - name: DPU_RST_CTL
+      description: DPU reset control
+      byte_offset: 0x88
+    - name: DISP_SYS_RST_TIM
+      description: display reset time control
+      byte_offset: 0x8c
+    - name: DISP_RST_CTL
+      description: display reset control
+      byte_offset: 0x90
+    - name: V2P5D_SYS_RST_TIM
+      description: video 2.5D reset time control
+      byte_offset: 0x94
+    - name: V2P5D_RST_CTL
+      description: video 2.5D reset control
+      byte_offset: 0x98
+    - name: AUDIO_RST_TIM
+      description: audio reset time control
+      byte_offset: 0xa0
+    - name: AUDIO_RST_CTL
+      description: audio reset control
+      byte_offset: 0xa4

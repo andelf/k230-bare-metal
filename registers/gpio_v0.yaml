@@ -1,0 +1,69 @@
+block/GPIO:
+  description: General Purpose Input/Output. group0 registers is 0x9140_B000, group1 registers is 0x9140_C000
+  items:
+    - name: SWPORTA_DR
+      description: Port A data register
+      byte_offset: 0x00
+    - name: SWPORTA_DDR
+      description: Port A Data Direction Register
+      byte_offset: 0x04
+    - name: SWPORTA_CTL
+      description: Port A data source register
+      byte_offset: 0x08
+    - name: SWPORTB_DR
+      description: Port B data register
+      byte_offset: 0x0c
+    - name: SWPORTB_DDR
+      description: Port B Data Direction Register
+      byte_offset: 0x10
+    - name: SWPORTB_CTL
+      description: Port B data source register
+      byte_offset: 0x14
+    - name: INTEN
+      description: Interrupt enable register Note This register is available only if Port A is configured
+      byte_offset: 0x30
+    - name: INTMASK
+      description: Interrupt mask register Note This register is available only if Port A is configured to generate
+      byte_offset: 0x34
+    - name: INTTYPE_LEVEL
+      description: Interrupt level Note This register is available only if Port A is configured to generate interrupts
+      byte_offset: 0x38
+    - name: INT_POLARITY
+      description: Interrupt polarity Note This register is available only if Port A is configured to generate interrupts
+      byte_offset: 0x3c
+    - name: INTSTATUS
+      description: Interrupt status Note This register is available only if Port A is configured to generate interrupts
+      byte_offset: 0x40
+    - name: RAW_INTSTATUS
+      description: Raw interrupt status Note This register is available only if Port A is configured to generate
+      byte_offset: 0x44
+    - name: DEBOUNCE
+      description: Debounce enable Note This register is available only if Port A is configured to generate interrupts
+      byte_offset: 0x48
+    - name: PORTA_EOI
+      description: Port A clear interrupt register Note This register is available only if Port A is configured to
+      byte_offset: 0x4c
+    - name: EXT_PORTA
+      description: External port A register
+      byte_offset: 0x50
+    - name: EXT_PORTB
+      description: Port B external port register
+      byte_offset: 0x54
+    - name: LS_SYNC
+      description: Synchronization level
+      byte_offset: 0x60
+    - name: ID_CODE
+      description: GPIO ID code
+      byte_offset: 0x64
+    - name: INT_BOTHEDGE
+      description: Interrupt Both Edge type Note This register is available only if PORT A is configured to generate
+      byte_offset: 0x68
+    - name: VER_ID_CODE
+      description: GPIO Component Version
+      byte_offset: 0x6c
+    - name: CONFIG_REG2
+      description: GPIO Configuration Register 2 This register is a read-only register that is present when the configuration
+      byte_offset: 0x70
+    - name: CONFIG_REG1
+      description: GPIO Configuration Register 1 This register is present when the configuration parameter GPIO_ADD_ENCODED_PARAMS
+      byte_offset: 0x74

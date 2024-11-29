@@ -1,0 +1,10 @@
+block/TSENSOR:
+  description: Temperature sensor. 0x9110_7000
+  items:
+    - name: TSenW
+      description: TSensor IP Configuration Register
+      byte_offset: 0
+    - name: TSenR
+      description: Read retured value of TSensor IP Register
+      byte_offset: 4
+      access: Read

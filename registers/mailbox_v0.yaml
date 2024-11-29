@@ -1,0 +1,193 @@
+block/MAILBOX:
+  description: Mailbox registers
+  items:
+    - name: CPU2DSP_INT_EN0
+      description: cpu0_sys2cpu1_sys interrupt enable register 0
+      byte_offset: 0x0000
+    - name: CPU2DSP_INT_SET0
+      description: cpu0_sys2cpu1_sys interrupt setting register 0
+      byte_offset: 0x0004
+    - name: CPU2DSP_INT_CLEAR0
+      description: cpu0_sys2cpu1_sys interrupt clear register 0
+      byte_offset: 0x0008
+    - name: CPU2DSP_INT_STATUS0
+      description: cpu0_sys2cpu1_sys interrupt status register 0
+      byte_offset: 0x000C
+    - name: CPU2DSP_INT_ERR0
+      description: cpu0_sys2cpu1_sys interrupt error register 0
+      byte_offset: 0x0010
+    - name: DSP2CPU_INT_EN0
+      description: cpu1_sys2cpu0_sys interrupt enable register 0
+      byte_offset: 0x0014
+    - name: DSP2CPU_INT_SET0
+      description: cpu1_sys2cpu0_sys interrupt setting register 0
+      byte_offset: 0x0018
+    - name: DSP2CPU_INT_CLEAR0
+      description: cpu1_sys2cpu0_sys interrupt clear register 0
+      byte_offset: 0x001C
+    - name: DSP2CPU_INT_STATUS0
+      description: cpu1_sys2cpu0_sys interrupt status register 0
+      byte_offset: 0x0020
+    - name: DSP2CPU_INT_ERR0
+      description: cpu1_sys2cpu0_sys interrupt error register 0
+      byte_offset: 0x0024
+    - name: CPU2DSP_INT_EN1
+      description: cpu0_sys2cpu1_sys interrupt enable register 1
+      byte_offset: 0x0028
+    - name: CPU2DSP_INT_SET1
+      description: cpu0_sys2cpu1_sys interrupt setting register 1
+      byte_offset: 0x002C
+    - name: CPU2DSP_INT_CLEAR1
+      description: cpu0_sys2cpu1_sys interrupt clear register 1
+      byte_offset: 0x0030
+    - name: CPU2DSP_INT_STATUS1
+      description: cpu0_sys2cpu1_sys interrupt status register 1
+      byte_offset: 0x0034
+    - name: CPU2DSP_INT_ERR1
+      description: cpu0_sys2cpu1_sys interrupt error register 1
+      byte_offset: 0x0038
+    - name: DSP2CPU_INT_EN1
+      description: cpu1_sys2cpu0_sys interrupt enable register 1
+      byte_offset: 0x003C
+    - name: DSP2CPU_INT_SET1
+      description: cpu1_sys2cpu0_sys interrupt setting register 1
+      byte_offset: 0x0040
+    - name: DSP2CPU_INT_CLEAR1
+      description: cpu1_sys2cpu0_sys interrupt clear register 1
+      byte_offset: 0x0044
+    - name: DSP2CPU_INT_STATUS1
+      description: cpu1_sys2cpu0_sys interrupt status register 1
+      byte_offset: 0x0048
+    - name: DSP2CPU_INT_ERR1
+      description: cpu1_sys2cpu0_sys interrupt error register 1
+      byte_offset: 0x004C
+    - name: CPU2DSP_INT_EN2
+      description: cpu0_sys2cpu1_sys interrupt enable register 2
+      byte_offset: 0x0050
+    - name: CPU2DSP_INT_SET2
+      description: cpu0_sys2cpu1_sys interrupt setting register 2
+      byte_offset: 0x0054
+    - name: CPU2DSP_INT_CLEAR2
+      description: cpu0_sys2cpu1_sys interrupt clear register 2
+      byte_offset: 0x0058
+    - name: CPU2DSP_INT_STATUS2
+      description: cpu0_sys2cpu1_sys interrupt status register 2
+      byte_offset: 0x005C
+    - name: CPU2DSP_INT_ERR2
+      description: cpu0_sys2cpu1_sys interrupt error register 2
+      byte_offset: 0x0060
+    - name: DSP2CPU_INT_EN2
+      description: cpu1_sys2cpu0_sys interrupt enable register 2
+      byte_offset: 0x0064
+    - name: DSP2CPU_INT_SET2
+      description: cpu1_sys2cpu0_sys interrupt setting register 2
+      byte_offset: 0x0068
+    - name: DSP2CPU_INT_CLEAR2
+      description: cpu1_sys2cpu0_sys interrupt clear register 2
+      byte_offset: 0x006C
+    - name: DSP2CPU_INT_STATUS2
+      description: cpu1_sys2cpu0_sys interrupt status register 2
+      byte_offset: 0x0070
+    - name: DSP2CPU_INT_ERR2
+      description: cpu1_sys2cpu0_sys interrupt error register 2
+      byte_offset: 0x0074
+    - name: CPU2DSP_INT_EN3
+      description: cpu0_sys2cpu1_sys interrupt enable register 3
+      byte_offset: 0x0078
+    - name: CPU2DSP_INT_SET3
+      description: cpu0_sys2cpu1_sys interrupt setting register 3
+      byte_offset: 0x007C
+    - name: CPU2DSP_INT_CLEAR3
+      description: cpu0_sys2cpu1_sys interrupt clear register 3
+      byte_offset: 0x0080
+    - name: CPU2DSP_INT_STATUS3
+      description: cpu0_sys2cpu1_sys interrupt status register 3
+      byte_offset: 0x0084
+    - name: CPU2DSP_INT_ERR3
+      description: cpu0_sys2cpu1_sys interrupt error register 3
+      byte_offset: 0x0088
+    - name: DSP2CPU_INT_EN3
+      description: cpu1_sys2cpu0_sys interrupt enable register 3
+      byte_offset: 0x008C
+    - name: DSP2CPU_INT_SET3
+      description: cpu1_sys2cpu0_sys interrupt setting register 3
+      byte_offset: 0x0090
+    - name: DSP2CPU_INT_CLEAR3
+      description: cpu1_sys2cpu0_sys interrupt clear register 3
+      byte_offset: 0x0094
+    - name: DSP2CPU_INT_STATUS3
+      description: cpu1_sys2cpu0_sys interrupt status register 3
+      byte_offset: 0x0098
+    - name: DSP2CPU_INT_ERR3
+      description: cpu1_sys2cpu0_sys interrupt error register 3
+      byte_offset: 0x009C
+    - name: MAILBOX
+      description: MAILBOX interlock register
+      byte_offset: 0x9C
+      array:
+        len: 128
+        stride: 4
+    - name: UART_LP_REQ_SCLK
+      description: UART SLCK Low Power Status Register
+      byte_offset: 0x2A0
+    - name: UART_LP_REQ_PCLK
+      description: UART PCLK low-power status register
+      byte_offset: 0x2A4
+    - name: QOS_CTRL0
+      description: QOS control register 0
+      byte_offset: 0x2A8
+    - name: QOS_CTRL1
+      description: QOS control register 1
+      byte_offset: 0x2AC
+    - name: QOS_CTRL2
+      description: QOS control register 2
+      byte_offset: 0x2B0
+    - name: QOS_CTRL3
+      description: QOS control register 3
+      byte_offset: 0x2B4
+    - name: QOS_CTRL4
+      description: QOS control register 4
+      byte_offset: 0x2B8
+    - name: NOC_WR_BUFFERABLE_CTRL
+      description: Noc bufferable control register
+      byte_offset: 0x2BC
+    - name: DDR_URGENT_MASK
+      description: DDR configuration register 0
+      byte_offset: 0x2C0
+    - name: DDR_BypassOutEnDAT
+      description: DDR configuration register 1
+      byte_offset: 0x2C4
+    - name: DDR_BypassInDataDat
+      description: DDR configuration register 2
+      byte_offset: 0x2C8
+    - name: DDR_BypassDat_H
+      description: DDR configuration register 3
+      byte_offset: 0x2CC
+    - name: DDR_BypassOutEnAC
+      description: DDR configuration register 4
+      byte_offset: 0x2D0
+    - name: DDR_BypassInDataAC
+      description: DDR configuration register 5
+      byte_offset: 0x2D4
+    - name: DDR_BypassInDataAC
+      description: DDR configuration register 6
+      byte_offset: 0x2D8
+    - name: MIPI_TX_BISTON
+      byte_offset: 0x2DC
+    - name: SSI_SLEEP
+      description: SSI Low Power Register
+      byte_offset: 0x2E0
+    - name: PVDET_EN
+      description: PVDET enable register
+      byte_offset: 0x2E4
+    - name: PVDET_OUT_DET
+      description: PVDET output detection register
+      byte_offset: 0x2E8
+    - name: OTP_HS_MSC_SEL
+      byte_offset: 0x2EC
+    - name: DDRC_SELFREF_TYPE
+      byte_offset: 0x2F0
+    - name: CODEC_AD2DA_LOOP
+      byte_offset: 0x2F4
+    - name: TIMER_EN
+      byte_offset: 0x2F8

@@ -1,0 +1,618 @@
+block/UART:
+  description: UART register block, DW_apb_uart
+  items:
+    - name: RBR
+      description: Receiver buffer register. when LCR[7] bit = 0
+      byte_offset: 0
+      access: Read
+      fieldset: RBR
+    - name: THR
+      description: Transmitter holding register. when LCR[7] bit = 0
+      byte_offset: 0
+      access: Write
+      fieldset: THR
+    - name: DLL
+      description: Divisor latch low. when LCR[7] bit = 1
+      byte_offset: 0
+      fieldset: DLL
+    - name: DLH
+      description: Divisor latch high. when LCR[7] bit = 1
+      byte_offset: 4
+      fieldset: DLH
+    - name: IER
+      description: Interrupt enable register. when LCR[7] bit = 0
+      byte_offset: 4
+      fieldset: IER
+    - name: IIR
+      description: Interrupt identification register.
+      byte_offset: 8
+      access: Read
+      fieldset: IIR
+    - name: FCR
+      description: FIFO control register.
+      byte_offset: 8
+      fieldset: FCR
+    - name: LCR
+      description: Line control register.
+      byte_offset: 12
+      fieldset: LCR
+    - name: MCR
+      description: Modem control register.
+      byte_offset: 16
+      fieldset: MCR
+    - name: LSR
+      description: Line status register.
+      byte_offset: 20
+      fieldset: LSR
+    - name: MSR
+      description: Modem status register.
+      byte_offset: 24
+      fieldset: MSR
+    - name: SCR
+      description: Scratch register.
+      byte_offset: 28
+      fieldset: SCR
+    - name: LPDLL
+      description: Low power divisor latch low.
+      byte_offset: 32
+      fieldset: DLL
+    - name: LPDLH
+      description: Low power divisor latch high.
+      byte_offset: 36
+      fieldset: DLH
+    - name: SRBR
+      description: Shadow receiver buffer register.
+      byte_offset: 0x30
+      access: Read
+      fieldset: RBR
+      array:
+        len: 16
+        stride: 4
+    - name: STHR
+      description: Shadow transmitter holding register.
+      byte_offset: 0x30
+      access: Write
+      fieldset: THR
+      array:
+        len: 16
+        stride: 4
+    - name: FAR
+      description: FIFO access register.
+      byte_offset: 0x70
+      fieldset: FAR
+    - name: TFR
+      description: Transmit FIFO read.
+      byte_offset: 0x74
+      fieldset: TFR
+    - name: RFW
+      description: Receive FIFO write.
+      byte_offset: 0x78
+      fieldset: RFW
+    - name: USR
+      description: UART status register.
+      byte_offset: 0x7C
+      fieldset: USR
+    - name: TFL
+      description: Transmit FIFO level.
+      byte_offset: 0x80
+      # dynamic fieldset, use u32
+    - name: RFL
+      description: Receive FIFO level.
+      byte_offset: 0x84
+      # dynamic fieldset, use u32
+    - name: SRR
+      description: Software reset register.
+      byte_offset: 0x88
+      fieldset: SRR
+    - name: SRTS
+      description: Shadow request to send.
+      byte_offset: 0x8C
+      fieldset: SRTS
+    - name: SBCR
+      description: Shadow break control register.
+      byte_offset: 0x90
+      fieldset: SBCR
+    - name: SDMAM
+      description: Shadow DMA mode.
+      byte_offset: 0x94
+      fieldset: SDMAM
+    - name: SFE
+      description: Shadow FIFO enable.
+      byte_offset: 0x98
+      fieldset: SFE
+    - name: SRT
+      description: Shadow RCVR trigger.
+      byte_offset: 0x9C
+      fieldset: SRT
+    - name: STET
+      description: Shadow TX empty trigger.
+      byte_offset: 0xA0
+      fieldset: STET
+    - name: HTX
+      description: Halt TX.
+      byte_offset: 0xA4
+      fieldset: HTX
+    - name: DMASA
+      description: DMA software acknowledge.
+      byte_offset: 0xF0
+      fieldset: DMASA
+    # The following registers might not be present
+    - name: CPR
+      description: Component parameter register.
+      byte_offset: 0xF4
+      access: Read
+      fieldset: CPR
+    - name: UCV
+      description: UART component version.
+      byte_offset: 0xF8
+      fieldset: UCV
+    - name: CTR
+      description: Component type register.
+      byte_offset: 0xFC
+      fieldset: CTR
+fieldset/RBR:
+  description: Receiver buffer register
+  fields:
+    - name: RBR
+      description: Data
+      bit_offset: 0
+      bit_size: 8
+fieldset/THR:
+  description: Transmitter holding register
+  fields:
+    - name: THR
+      description: Data
+      bit_offset: 0
+      bit_size: 8
+fieldset/DLL:
+  description: Divisor latch low
+  fields:
+    - name: DLL
+      description: Data
+      bit_offset: 0
+      bit_size: 8
+fieldset/DLH:
+  description: Divisor latch high
+  fields:
+    - name: DLH
+      description: Data
+      bit_offset: 0
+      bit_size: 8
+fieldset/IER:
+  description: Interrupt enable register
+  fields:
+    - name: ERBFI
+      description: Enable received data available interrupt
+      bit_offset: 0
+      bit_size: 1
+    - name: ETBEI
+      description: Enable transmitter holding register empty interrupt
+      bit_offset: 1
+      bit_size: 1
+    - name: ELSI
+      description: Enable receiver line status interrupt
+      bit_offset: 2
+      bit_size: 1
+    - name: EDSSI
+      description: Enable modem status interrupt
+      bit_offset: 3
+      bit_size: 1
+    - name: PTIME
+      description: Programmable THRE Interrupt Mode Enable
+      bit_offset: 7
+      bit_size: 1
+fieldset/IIR:
+  description: Interrupt Identity register
+  fields:
+    - name: IID
+      description: Interrupt ID
+      bit_offset: 0
+      bit_size: 4
+    - name: FIFOSE
+      description:  FIFOs Enabled
+      bit_offset: 6
+      bit_size: 2
+fieldset/FCR:
+  description: FIFO control register
+  fields:
+    - name: FIFOE
+      description: FIFO enable
+      bit_offset: 0
+      bit_size: 1
+    - name: RFIFOR
+      description: RCVR FIFO reset
+      bit_offset: 1
+      bit_size: 1
+    - name: XFIFOR
+      description: XMIT FIFO reset
+      bit_offset: 2
+      bit_size: 1
+    - name: DMAM
+      description: DMA mode
+      bit_offset: 3
+      bit_size: 1
+    - name: TET
+      description: TX Empty Trigger
+      bit_offset: 4
+      bit_size: 2
+    - name: RT
+      description: RCVR Trigger
+      bit_offset: 6
+      bit_size: 2
+fieldset/LCR:
+  description: Line control register
+  fields:
+    - name: WLS
+      description: Data length select, aka. CLS, DLS
+      bit_offset: 0
+      bit_size: 2
+      enum: DATA_BITS
+    - name: STOP
+      description: Number of stop bits
+      bit_offset: 2
+      bit_size: 1
+      enum: STOP_BITS
+    - name: PEN
+      description: Parity enable
+      bit_offset: 3
+      bit_size: 1
+    - name: EPS
+      description: Even parity select
+      bit_offset: 4
+      bit_size: 1
+      enum: PARITY_SELECT
+    - name: SP
+      description: Stick parity (reserved in 16550, read as 0)
+      bit_offset: 5
+      bit_size: 1
+    - name: BC
+      description: Break control
+      bit_offset: 6
+      bit_size: 1
+    - name: DLAB
+      description: Divisor latch access bit
+      bit_offset: 7
+      bit_size: 1
+fieldset/MCR:
+  description: Modem control register
+  fields:
+    - name: DTR
+      description: Data terminal ready
+      bit_offset: 0
+      bit_size: 1
+    - name: RTS
+      description: Request to send
+      bit_offset: 1
+      bit_size: 1
+    - name: OUT1
+      description: Output 1
+      bit_offset: 2
+      bit_size: 1
+    - name: OUT2
+      description: Output 2
+      bit_offset: 3
+      bit_size: 1
+    - name: LB
+      description: Loopback mode, aka. LOOP
+      bit_offset: 4
+      bit_size: 1
+    - name: AFCE
+      description: Auto flow control enable
+      bit_offset: 5
+      bit_size: 1
+    - name: SIRE
+      description: SIR mode enable
+      bit_offset: 6
+      bit_size: 1
+fieldset/LSR:
+  description: Line status register
+  fields:
+    - name: DR
+      description: Data ready
+      bit_offset: 0
+      bit_size: 1
+    - name: OE
+      description: Overrun error
+      bit_offset: 1
+      bit_size: 1
+    - name: PE
+      description: Parity error
+      bit_offset: 2
+      bit_size: 1
+    - name: FE
+      description: Framing error
+      bit_offset: 3
+      bit_size: 1
+    - name: BI
+      description: Break interrupt
+      bit_offset: 4
+      bit_size: 1
+    - name: THRE
+      description: Transmitter holding register empty
+      bit_offset: 5
+      bit_size: 1
+    - name: TEMT
+      description: Transmitter empty
+      bit_offset: 6
+      bit_size: 1
+    - name: RFE
+      description: Receiver FIFO error
+      bit_offset: 7
+      bit_size: 1
+fieldset/MSR:
+  description: Modem status register
+  fields:
+    - name: DCTS
+      description: Delta clear to send
+      bit_offset: 0
+      bit_size: 1
+    - name: DDSR
+      description: Delta data set ready
+      bit_offset: 1
+      bit_size: 1
+    - name: TERI
+      description: Trailing edge ring indicator
+      bit_offset: 2
+      bit_size: 1
+    - name: DDCD
+      description: Delta data carrier detect
+      bit_offset: 3
+      bit_size: 1
+    - name: CTS
+      description: Clear to send
+      bit_offset: 4
+      bit_size: 1
+    - name: DSR
+      description: Data set ready
+      bit_offset: 5
+      bit_size: 1
+    - name: RI
+      description: Ring indicator
+      bit_offset: 6
+      bit_size: 1
+    - name: DCD
+      description: Data carrier detect
+      bit_offset: 7
+      bit_size: 1
+fieldset/SCR:
+  description: Scratch register
+  fields:
+    - name: SCR
+      description: Data
+      bit_offset: 0
+      bit_size: 8
+fieldset/SRBR:
+  description: Shadow receiver buffer register
+  fields:
+    - name: SRBR
+      description: Data
+      bit_offset: 0
+      bit_size: 8
+fieldset/STHR:
+  description: Shadow transmitter holding register
+  fields:
+    - name: STHR
+      description: Data
+      bit_offset: 0
+      bit_size: 8
+fieldset/FAR:
+  description: FIFO access register
+  fields:
+    - name: FAR
+      description: FIFO access register
+      bit_offset: 0
+      bit_size: 1
+fieldset/TFR:
+  description: Transmit FIFO read
+  fields:
+    - name: TFR
+      description: Data
+      bit_offset: 0
+      bit_size: 8
+fieldset/RFW:
+  description: Receive FIFO write
+  fields:
+    - name: RFWD
+      description: Receive FIFO Write Data
+      bit_offset: 0
+      bit_size: 8
+    - name: RFPE
+      description: Receive FIFO Parity Error
+      bit_offset: 8
+      bit_size: 1
+    - name: RFFE
+      description: Receive FIFO Frame Error
+      bit_offset: 9
+      bit_size: 1
+fieldset/USR:
+  description: UART status register
+  fields:
+    - name: BUSY
+      description: Busy
+      bit_offset: 0
+      bit_size: 1
+    - name: TFNF
+      description: Transmit FIFO Not Full
+      bit_offset: 1
+      bit_size: 1
+    - name: TFE
+      description: Transmit FIFO Empty
+      bit_offset: 2
+      bit_size: 1
+    - name: RFNE
+      description: Receive FIFO Not Empty
+      bit_offset: 3
+      bit_size: 1
+    - name: RFF
+      description: Receive FIFO Full
+      bit_offset: 4
+      bit_size: 1
+fieldset/SRR:
+  description: Software reset register
+  fields:
+    - name: UR
+      description: UART reset
+      bit_offset: 0
+      bit_size: 1
+    - name: RFR
+      description: RCVR FIFO reset
+      bit_offset: 1
+      bit_size: 1
+    - name: XFR
+      description: XMIT FIFO reset
+      bit_offset: 2
+      bit_size: 1
+fieldset/SRTS:
+  description: Shadow request to send
+  fields:
+    - name: SRTS
+      description: Shadow request to send
+      bit_offset: 0
+      bit_size: 1
+fieldset/SBCR:
+  description: Shadow break control register
+  fields:
+    - name: SBCR
+      description: Shadow break control register
+      bit_offset: 0
+      bit_size: 1
+fieldset/SDMAM:
+  description: Shadow DMA mode
+  fields:
+    - name: SDMAM
+      description: Shadow DMA mode
+      bit_offset: 0
+      bit_size: 1
+fieldset/SFE:
+  description: Shadow FIFO enable
+  fields:
+    - name: SFE
+      description: Shadow FIFO enable
+      bit_offset: 0
+      bit_size: 1
+fieldset/SRT:
+  description: Shadow RCVR trigger
+  fields:
+    - name: SRT
+      description: Shadow RCVR trigger
+      bit_offset: 0
+      bit_size: 2
+fieldset/STET:
+  description: Shadow TX empty trigger
+  fields:
+    - name: STET
+      description: Shadow TX empty trigger
+      bit_offset: 0
+      bit_size: 2
+fieldset/HTX:
+  description: Halt TX
+  fields:
+    - name: HTX
+      description: Halt TX
+      bit_offset: 0
+      bit_size: 1
+fieldset/DMASA:
+  description: DMA software acknowledge
+  fields:
+    - name: DMASA
+      description: DMA software acknowledge
+      bit_offset: 0
+      bit_size: 1
+fieldset/CPR:
+  description: Component parameter register
+  fields:
+    - name: APB_DATA_WIDTH
+      description: APB data width
+      bit_offset: 0
+      bit_size: 2
+    - name: AFCE_MODE
+      description: Auto flow control enable mode
+      bit_offset: 4
+      bit_size: 1
+    - name: THRE_MODE
+      description: THRE mode
+      bit_offset: 5
+      bit_size: 1
+    - name: SIR_MODE
+      description: SIR mode
+      bit_offset: 6
+      bit_size: 1
+    - name: SIR_LP_MODE
+      description: SIR low power mode
+      bit_offset: 7
+      bit_size: 1
+    - name: ADDITIONAL_FEAT
+      description: Additional features
+      bit_offset: 8
+      bit_size: 1
+    - name: FIFO_ACCESS
+      description: FIFO access
+      bit_offset: 9
+      bit_size: 1
+    - name: FIFO_STAT
+      description: FIFO status
+      bit_offset: 10
+      bit_size: 1
+    - name: SHADOW
+      description: Shadow
+      bit_offset: 11
+      bit_size: 1
+    - name: UART_ADD_ENCODED_PARAMS
+      description: UART additional encoded parameters
+      bit_offset: 12
+      bit_size: 1
+    - name: DMA_EXTRA
+      description: DMA extra
+      bit_offset: 13
+      bit_size: 1
+    - name: FIFO_MODE
+      description: FIFO mode
+      bit_offset: 16
+      bit_size: 8
+fieldset/UCV:
+  description: UART component version
+  fields:
+    - name: UCV
+      description: UART component version
+      bit_offset: 0
+      bit_size: 32
+fieldset/CTR:
+  description: Component type register
+  fields:
+    - name: PID
+      description: Peripherals identification code
+      bit_offset: 0
+      bit_size: 32
+enum/DATA_BITS:
+  bit_size: 2
+  variants:
+    - name: Bit5
+      description: 5 bits
+      value: 0b00
+    - name: Bit6
+      description: 6 bits
+      value: 0b01
+    - name: Bit7
+      description: 7 bits
+      value: 0b10
+    - name: Bit8
+      description: 8 bits
+      value: 0b11
+enum/STOP_BITS:
+  bit_size: 1
+  variants:
+    - name: Stop1
+      description: 1 stop bit
+      value: 0
+    - name: Stop2
+      description: 2 stop bits (1.5 when 5 bits)
+      value: 1
+enum/PARITY_SELECT:
+  bit_size: 1
+  variants:
+    - name: Odd
+      description: Odd parity (one)
+      value: 0
+    - name: Even
+      description: Even parity (zero)
+      value: 1

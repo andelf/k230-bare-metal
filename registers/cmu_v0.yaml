@@ -1,0 +1,96 @@
+block/CMU:
+  description: Clock Management Unit. 0x9110_0000
+  items:
+    - name: CPU0_CLK_CFG
+      description: cpu0 clk configuration
+      byte_offset: 0x0
+    - name: CPU1_CLK_CFG
+      description: cpu1 clk cofiguration
+      byte_offset: 0x4
+    - name: AI_CLK_CFG
+      description: ai clk cofiguration
+      byte_offset: 0x8
+    - name: VPU_CLK_CFG
+      description: vpu clk cofiguration
+      byte_offset: 0xc
+    - name: PMU_CLK_CFG
+      description: pmu clk cofiguration
+      byte_offset: 0x10
+    - name: HS_CLKEN_CFG
+      description: high speed system clk cofiguration
+      byte_offset: 0x18
+    - name: HS_SDCLK_CFG
+      description: SD clk configuration
+      byte_offset: 0x1c
+    - name: HS_SPI_CFG
+      description: SPI clk configuration
+      byte_offset: 0x20
+    - name: LS_CLKEN_CFG0
+      description: low speed system clk configuration
+      byte_offset: 0x24
+    - name: LS_CLKEN_CFG1
+      description: low speed system clk configuration
+      byte_offset: 0x28
+    - name: UART_I2C_CLKDIV_CFG
+      description: low speed uart, iic clock divider configuration
+      byte_offset: 0x2c
+    - name: LS_CLKDIV_CFG
+      description: low speed clk divider configuration
+      byte_offset: 0x30
+    - name: AUDIO_CLKDIV_CFG
+      description: audio clk divider configuration
+      byte_offset: 0x34
+    - name: CODEC_ADC_MCLKDIV_CFG
+      description: audio codec adc clk divider configuration
+      byte_offset: 0x38
+    - name: CODEC_DAC_MCLKDIV_CFG
+      description: audio codec dac clk divider configuration
+      byte_offset: 0x3c
+    - name: PDM_CLKDIV_CFG0
+      description: pdm clk divider configuration
+      byte_offset: 0x40
+    - name: PDM_CLKDIV_CFG1
+      description: pdm clk divider configuration
+      byte_offset: 0x44
+    - name: SYSCTL_CLKEN_CFG
+      description: sys ctrl clk configuration
+      byte_offset: 0x50
+    - name: TIMER_CLK_CFG
+      description: timer clk configuration
+      byte_offset: 0x54
+    - name: SYSCTL_CLK_DIV_CFG
+      description: sys ctl clk divider configuration
+      byte_offset: 0x58
+    - name: SHRM_CLK_CFG
+      description: share memory system clk configuration
+      byte_offset: 0x5c
+    - name: DDR_CLK_CFG
+      description: DDR system clk configuration
+      byte_offset: 0x60
+    - name: ISP_CLKEN_CFG
+      description: ISP clk configuration
+      byte_offset: 0x64
+    - name: ISP_CLKDIV_CFG
+      description: ISP clk divider configuration
+      byte_offset: 0x68
+    - name: MCLK_CFG
+      description: MCLK clk configuration
+      byte_offset: 0x6c
+    - name: DPU_CLK_CFG
+      description: DPU clk configuration
+      byte_offset: 0x70
+    - name: VO_CLK_CFG
+      description: display clk configuration
+      byte_offset: 0x74
+    - name: DISP_CLK_DIV
+      description: display clk divider configuration
+      byte_offset: 0x78
+    - name: SEC_CLK_DIV
+      description: security clk divider configuration
+      byte_offset: 0x80
+    - name: USB_TEST_CLK_DIV
+      description: usb test clk divider configuration
+      byte_offset: 0x100
+    - name: DPHY_TEST_CLK_DIV
+      description: MIPI dphy test clk divider configuration
+      byte_offset: 0x104

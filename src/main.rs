@@ -275,11 +275,28 @@ impl core::fmt::Write for Console {
     }
 }
 
+macro_rules! println {
+    ($($arg:tt)*) => {
+        {
+            use core::fmt::Write;
+            writeln!(&mut Console, $($arg)*).unwrap();
+        }
+    };
+    ($($arg:tt)*) => {
+        {
+            use core::fmt::Write;
+            writeln!(&mut Console, $($arg)*).unwrap();
+        }
+    };
+}
+
 #[no_mangle]
 unsafe extern "C" fn _start_rust() -> ! {
     //while UART0.lsr().read().dr() == false {
     //   asm!("nop");
     //}
+    UART0.thr().write(|w| w.set_thr(0x42));
+    UART0.thr().write(|w| w.set_thr(0x42));
     UART0.thr().write(|w| w.set_thr(0x42));
 
     UART0.ier().write(|w| w.0 = 0);
@@ -292,9 +309,11 @@ unsafe extern "C" fn _start_rust() -> ! {
 
     UART0.thr().write(|w| w.set_thr(0x41));
 
+    writeln!(con, "\n").unwrap();
+
     // asm!("    .word 0x00000000");
 
-    let addr = 0x9140_0000_u32;
+    //let addr = 0x9140_0000_u32;
 
     /*
     let mut uart = MmioUart8250::new(addr);
@@ -316,7 +335,9 @@ unsafe extern "C" fn _start_rust() -> ! {
             asm!("nop");
         }
 
-        asm!(".word 0x00000000",);
+        writeln!(con, "tick!").unwrap();
+
+        // asm!(".word 0x00000000",);
         // uart.write_byte(b'B');
     }
 }
