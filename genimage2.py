@@ -45,10 +45,29 @@ firmware += bytes(516 - 32)
 
 firmware += intput_data
 
+img = bytes(0x100000) + firmware
+# img += firmware
+
+# fill 512 boundary
+if len(img) % 512 != 0:
+    img += bytes(512 - len(img) % 512)
+
+
+with open("./firmware.img", 'wb') as f:
+    f.write(img)
+
+
+print("len", len(img))
+
+raise SystemExit
+
 
 
 with open("./k230_uboot_sd.img", 'rb') as f:
     img = f.read()
+
+
+
 
 
 res_img = img[:0x100000] + firmware + bytes(0x100000 - len(firmware)) + img[0x200000:]
@@ -67,9 +86,6 @@ with open("./firmware-spl.bin", 'wb') as f:
 #with open("./CanMV-K230_micropython_local_nncase_v2.9.0.img", 'rb') as f:
 #    img = f.read(0x100000)
 
-img = bytes(0x100000) + firmware
-
-img += firmware
 
 
 
@@ -85,10 +101,3 @@ img += bytes(0x200000 - len(img))
 
 img += firmware
 
-# fill 512 boundary
-if len(img) % 512 != 0:
-    img += bytes(512 - len(img) % 512)
-
-
-with open("./firmware.img", 'wb') as f:
-    f.write(img)

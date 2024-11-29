@@ -8,14 +8,17 @@ def sha256(message):
 
     return digest
 
+
+
+
 VERSION = b"\x00\x00\x00\x00"
 MAGIC = b"K230"
 
 with open("./firmware.bin", 'rb') as f:
     data = f.read()
 
-#with open('./u-boot-spl.dtb', 'rb')  as f:
-#    data += f.read()
+with open('./u-boot-spl.dtb', 'rb')  as f:
+    data += f.read()
 
 
 intput_data = VERSION + data
@@ -42,8 +45,31 @@ firmware += bytes(516 - 32)
 
 firmware += intput_data
 
+
+with open("./firmware-spl.bin", 'wb') as f:
+    f.write(firmware)
+
+
+#with open("./CanMV-K230_micropython_local_nncase_v2.9.0.img", 'rb') as f:
+#    img = f.read(0x100000)
+
 img = bytes(0x100000) + firmware
-# img += firmware
+
+img += firmware
+
+
+
+
+
+
+
+
+
+
+
+img += bytes(0x200000 - len(img))
+
+img += firmware
 
 # fill 512 boundary
 if len(img) % 512 != 0:
@@ -52,9 +78,3 @@ if len(img) % 512 != 0:
 
 with open("./firmware.img", 'wb') as f:
     f.write(img)
-
-
-print("len", len(img))
-
-raise SystemExit
-
