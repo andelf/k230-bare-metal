@@ -50,6 +50,9 @@ pub const UART4_SCLK: u32 = 50_000_000;
 
 pub const DDRC_CPRE_CLK: u32 = 800_000_000;
 
+// for MTIME
+pub const STC_CLK: u32 = 27_000_000;
+
 /// Parse cfg attributes inside a global_asm call.
 macro_rules! cfg_global_asm {
     {@inner, [$($x:tt)*], } => {
@@ -187,6 +190,9 @@ unsafe extern "C" fn _early_init() {
         mstatus::set_sie(); // and supervisor interrupt
         mie::set_mext(); // and external interrupt
 
+        mcounteren::set_cy(); // enable cycle counter
+        mcounteren::set_tm(); // and time counter
+
         // FPU init
         mstatus::set_fs(mstatus::FS::Clean);
         mstatus::set_fs(mstatus::FS::Initial);
@@ -260,23 +266,35 @@ unsafe extern "C" fn _start_rust() -> ! {
     let marchid = riscv::register::marchid::read().unwrap();
     println!("marchid: {:x}", marchid.bits());
 
+    let mut cpuid0: u64;
+    let mut cpuid1: u64;
+    let mut cpuid2: u64;
+    asm!("
+        csrr {0}, 0xfc0
+        csrr {1}, 0xfc0
+        csrr {2}, 0xfc0
+    ", out(reg) cpuid0, out(reg) cpuid1, out(reg) cpuid2);
+    println!("cpuid: {:08x} {:08x} {:08x}", cpuid0, cpuid1, cpuid2);
+
+    // read csr 0xfc1 mapbaddr, p
+    let mut mapbaddr: u64;
+    asm!("csrr {0}, 0xfc1", out(reg) mapbaddr);
+    println!("PLIC base: 0x{:016x}", mapbaddr);
+
     let mut delay = riscv::delay::McycleDelay::new(CPU0_CORE_CLK);
 
     loop {
-        /*  for _ in 0..8000000 {
-            asm!("nop");
-        }
-        */
-
         // delay.delay_ms(1000); panic!("fuck"); // - test trap
+
+        let mtime = pac::CLINT.mtime().read();
+        println!("mtime: {}", mtime);
 
         let mcycle = riscv::register::mcycle::read64();
         writeln!(con, "mcycle: {}", mcycle).unwrap();
 
-        // asm!(".word 0x00000000",);
-        // uart.write_byte(b'B');
-
         delay.delay_ms(1000);
+
+        pac::CLINT.msip(0).write(|w| w.set_msip(true));
     }
 }
 
