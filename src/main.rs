@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![feature(abi_riscv_interrupt)]
 
 use core::fmt::{self, Write as _};
 use core::{
@@ -19,7 +20,7 @@ macro_rules! println {
     () => {
         {
             use core::fmt::Write;
-            writeln!(&mut crate::Console, "").unwrap();
+            writeln!(&mut $crate::Console, "").unwrap();
         }
     };
 
@@ -67,34 +68,28 @@ macro_rules! cfg_global_asm {
     };
 }
 
-//      la t1, __global_pointer$
-// csrw mie, zero
-/*
- la t0, 0x91400000
- li t1, 0x41
- sb t1, 0(t0)
- nop
- nop
- sb t1, 0(t0)
-   .option push
-  .option norelax
-.option pop
- */
-
 cfg_global_asm!(
     // no "c" here, the same as riscv-rt
     ".attribute arch, \"rv64im\"",
     ".section .start, \"ax\"
      .global _start
 _start:
-     la t1, __stack_start__
-     addi sp, t1, -16
-     csrw mie, zero
+    la t1, __stack_start__
+    addi sp, t1, -16
+    li gp, 0
+
+    la t0, _start_trap_rust
+    csrw mtvec, t0
+    csrw mie, zero
 
     csrr t0, mhartid
     bne t0, zero, hart1
 
-    call board_early_init
+    li    t0, 0x00001800
+    csrw  mstatus, t0
+
+    call _early_init
+
     call _start_rust
 
 1:
@@ -121,7 +116,14 @@ _mp_hook:
 );
 
 #[no_mangle]
-unsafe extern "C" fn board_early_init() {
+unsafe extern "riscv-interrupt-m" fn _start_trap_rust() {
+    println!("trap!");
+    loop {}
+}
+
+// board_early_init
+#[no_mangle]
+unsafe extern "C" fn _early_init() {
     ptr::write_volatile(0x9110_8020 as *mut u32, 0x1);
     ptr::write_volatile(0x9110_8030 as *mut u32, 0x1);
     ptr::write_volatile(0x9110_8000 as *mut u32, 0x69);
@@ -164,6 +166,17 @@ unsafe extern "C" fn board_early_init() {
 
     "
     );
+
+    {
+        use riscv::register::*;
+
+        mstatus::set_mie(); // enable global interrupt
+        mstatus::set_sie(); // and supervisor interrupt
+        mie::set_mext(); // and external interrupt
+
+        mstatus::set_fs(mstatus::FS::Clean);
+        mstatus::set_fs(mstatus::FS::Initial);
+    }
 }
 
 // ASCII art of "Rust"
@@ -189,9 +202,6 @@ impl core::fmt::Write for Console {
 
 #[no_mangle]
 unsafe extern "C" fn _start_rust() -> ! {
-    //while UART0.lsr().read().dr() == false {
-    //   asm!("nop");
-    //}
     UART0.thr().write(|w| w.set_thr(0x42));
     UART0.thr().write(|w| w.set_thr(0x42));
     UART0.thr().write(|w| w.set_thr(0x42));
@@ -253,6 +263,7 @@ unsafe extern "C" fn _start_rust() -> ! {
             asm!("nop");
         }
 
+        // panic!("fuck"); - test trap
         let mcycle = riscv::register::mcycle::read64();
 
         writeln!(con, "mcycle: {}", mcycle).unwrap();
