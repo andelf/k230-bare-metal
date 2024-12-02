@@ -7,6 +7,7 @@ use core::{
     arch::{asm, global_asm},
     ptr,
 };
+use embedded_hal::delay::DelayNs;
 use pac::UART0;
 
 #[macro_export]
@@ -258,10 +259,13 @@ unsafe extern "C" fn _start_rust() -> ! {
     let marchid = riscv::register::marchid::read().unwrap();
     println!("marchid: {:x}", marchid.bits());
 
+    let mut delay = riscv::delay::McycleDelay::new(CPU0_CORE_CLK);
+
     loop {
-        for _ in 0..8000000 {
+        /*  for _ in 0..8000000 {
             asm!("nop");
         }
+        */
 
         // panic!("fuck"); - test trap
         let mcycle = riscv::register::mcycle::read64();
@@ -270,6 +274,8 @@ unsafe extern "C" fn _start_rust() -> ! {
 
         // asm!(".word 0x00000000",);
         // uart.write_byte(b'B');
+
+        delay.delay_ms(1000);
     }
 }
 
