@@ -89,87 +89,20 @@ cfg_global_asm!(
 _start:
      la t1, __stack_start__
      addi sp, t1, -16
-
-     csrr a0, mhartid
-     lui a1, 0x88888
-     mv t0, zero
-     mv t1, zero
-     csrr a2, misa
-
-     la s0, 0x91400000
-     addi s1, s0, 0x14
-
-     li t0, 0x41
-     sb t0, 0(s0)
-     li t0, 0x41
-     sb t0, 0(s0)
-     li t0, 0x41
-     sb t0, 0(s0)
-     nop
-     nop
-     call board_early_init
-     nop
-     nop
-
-    la x18, 0x91101024
-    lw x19, 0(x18)
-    la x20, 0x91100024
-    lw x21, 0(x20)
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-1:
-    csrr t0, mhartid
-    bne t0, zero, 1b
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-
-//    .word 0x00000000
-
-    call _start_rust
-    //
-
-     li gp, 0
-
      csrw mie, zero
 
-     li t0, -16
-     addiw t1, zero, 513
-     slli t1, t1, 0x16
-     addi t1, t1, -368
-     and sp, t1, t0
+    csrr t0, mhartid
+    bne t0, zero, hart1
 
+    call board_early_init
+    call _start_rust
 
-     beqz t0, 1f
-hart1:
-    wfi
-    j hart1
-
-1:
-
-    ",
-    /*
-    "la t1, __stack_safe__
-     addi sp, t1, -16
-     call __pre_init
-    ",*/
-    // set sp
-    "la t1, __stack_start__
-     addiw sp, t1, -16
-    .word 0x00000000
-     call _start_rust",
-    "
 1:
     j 1b
+
+    hart1:
+    wfi
+    j hart1
     ",
 );
 
@@ -198,7 +131,7 @@ unsafe extern "C" fn board_early_init() {
     // SYSCTL_PWR_BASE_ADDRn
     ptr::write_volatile((0x91103000_u32 + 0x158) as *mut u32, 0x0);
 
-    // write 0x24484dff to csr pmpaddr0
+    // disable all pmp
     asm!(
         "
         li t0, 0xffffffff
@@ -308,6 +241,12 @@ unsafe extern "C" fn _start_rust() -> ! {
         }
     }
     writeln!(con).unwrap();
+
+    let mvendorid = riscv::register::mvendorid::read().unwrap();
+    println!("mvendorid: {:x}", mvendorid.bits());
+
+    let marchid = riscv::register::marchid::read().unwrap();
+    println!("marchid: {:x}", marchid.bits());
 
     loop {
         for _ in 0..8000000 {
