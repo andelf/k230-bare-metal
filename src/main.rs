@@ -312,8 +312,10 @@ unsafe extern "C" fn _start_rust() -> ! {
     let mut con = Console;
 
     UART0.thr().write(|w| w.set_thr(0x41));
+    UART0.thr().write(|w| w.set_thr(0x41));
+    UART0.thr().write(|w| w.set_thr(0x41));
 
-    writeln!(con, "\n").unwrap();
+    write!(con, "\n").unwrap();
 
     // asm!("    .word 0x00000000");
 
@@ -328,14 +330,27 @@ unsafe extern "C" fn _start_rust() -> ! {
 
     //let mut uart = MmioUart8250::new(addr);
 
-    writeln!(con, "Hello, world!").unwrap();
-
     writeln!(con, "{}", BANNER).unwrap();
 
-    writeln!(con, "Booting K230 using Rust HAL ....").unwrap();
+    writeln!(con, "Booting K230 using Rust ....").unwrap();
+
+    ddr_init::board_ddr_init();
+
+    writeln!(con, "DDR init done!").unwrap();
+
+    let misa = riscv::register::misa::read().unwrap();
+
+    println!("misa: {:x}", misa.bits());
+    write!(con, "  RV64").unwrap();
+    for c in 'A'..='Z' {
+        if misa.has_extension(c) {
+            write!(con, "{}", c).unwrap();
+        }
+    }
+    writeln!(con, "").unwrap();
 
     loop {
-        for i in 0..8000000 {
+        for _ in 0..8000000 {
             asm!("nop");
         }
 
