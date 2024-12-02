@@ -64,6 +64,8 @@ mcycle: 1177686900
           + Firmware version
 ```
 
+Firmware is loaded to 0x80300000, not 0x80200000. 0x80200000 to 0x802fffff is reserved for the bootloader(BootRom).
+
 ## About K230
 
 ### Peripherals
