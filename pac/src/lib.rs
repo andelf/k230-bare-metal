@@ -17,9 +17,6 @@ pub mod gpio;
 #[path = "uart_dw.rs"]
 pub mod uart;
 
-
-
-
 pub const BOOT: boot::Boot = unsafe { boot::Boot::from_ptr(0x9110_2000 as *mut ()) };
 
 pub const CMU: cmu::Cmu = unsafe { cmu::Cmu::from_ptr(0x9110_0000 as *mut ()) };
