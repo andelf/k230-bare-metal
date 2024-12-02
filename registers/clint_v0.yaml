@@ -1,0 +1,99 @@
+block/CLINT:
+  description: RISC-V Core Local Interruptor.
+  items:
+    - name: MSIP
+      description: Machine software interrupt pending
+      byte_offset: 0
+      bit_size: 32
+      fieldset: MSIP
+      array:
+        len: 256
+        stride: 4
+    - name: MTIMECMP
+      description: Machine timer compare value
+      byte_offset: 0x4000
+      bit_size: 64
+      array:
+        len: 256
+        stride: 8
+    - name: MTIMECMPL
+      description: Machine timer compare value low
+      byte_offset: 0x4000
+      bit_size: 32
+      array:
+        len: 256
+        stride: 8
+    - name: MTIMECMPH
+      description: Machine timer compare value high
+      byte_offset: 0x4004
+      bit_size: 32
+      array:
+        len: 256
+        stride: 8
+    - name: MTIME
+      description: Machine timer value
+      byte_offset: 0xBFF8
+      bit_size: 64
+    - name: MTIMEL
+      description: Machine timer value low
+      byte_offset: 0xBFF8
+      bit_size: 32
+    - name: MTIMEH
+      description: Machine timer value high
+      byte_offset: 0xBFFC
+      bit_size: 32
+    - name: SSIP
+      description: Supervisor software interrupt pending
+      byte_offset: 0xc000
+      bit_size: 32
+      fieldset: SSIP
+      array:
+        len: 256
+        stride: 4
+    - name: STIMECMP
+      description: Supervisor timer compare value
+      byte_offset: 0xd000
+      bit_size: 64
+      array:
+        len: 256
+        stride: 8
+    - name: STIMECMPL
+      description: Supervisor timer compare value low
+      byte_offset: 0xd000
+      bit_size: 32
+      array:
+        len: 256
+        stride: 8
+    - name: STIMECMPH
+      description: Supervisor timer compare value high
+      byte_offset: 0xd004
+      bit_size: 32
+      array:
+        len: 256
+        stride: 8
+    - name: STIME
+      description: Supervisor timer value
+      byte_offset: 0xdFF8
+      bit_size: 64
+    - name: STIMEL
+      description: Supervisor timer value low
+      byte_offset: 0xdFF8
+      bit_size: 32
+    - name: STIMEH
+      description: Supervisor timer value high
+      byte_offset: 0xdFFC
+      bit_size: 32
+fieldset/MSIP:
+  description: Machine software interrupt pending
+  fields:
+    - name: MSIP
+      description: Machine software interrupt pending
+      bit_offset: 0
+      bit_size: 1
+fieldset/SSIP:
+  description: Supervisor software interrupt pending
+  fields:
+    - name: SSIP
+      description: Supervisor software interrupt pending
+      bit_offset: 0
+      bit_size: 1
