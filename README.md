@@ -72,9 +72,9 @@ Firmware is loaded to 0x80300000, not 0x80200000. 0x80200000 to 0x802fffff is re
 
 The peripheral IP cores are:
 
-- Uart: DW_apb_uart
-- Spi: DW_apb_ssi
-- I2c: DW_apb_i2c
+- UART: DW_apb_uart
+- SPI: DW_apb_ssi
+- I2C: DW_apb_i2c
 - GPIO: DW_apb_gpio
 - I2S: DW_apb_i2s
 - Timer: DW_apb_timers
