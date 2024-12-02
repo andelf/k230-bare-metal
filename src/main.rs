@@ -126,6 +126,8 @@ _mp_hook:
 
 #[no_mangle]
 unsafe extern "riscv-interrupt-m" fn _start_trap_rust() {
+    riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(10);
+
     println!("trap!");
 
     println!("mstatus: {:016x}", riscv::register::mstatus::read().bits());
@@ -159,8 +161,9 @@ unsafe extern "C" fn _early_init() {
     );
 
     // performance settings
-    asm!(
-        "
+    if false {
+        asm!(
+            "
         la t0, 0x70013
         // MCOR
         csrw 0x7c2, t0
@@ -179,9 +182,9 @@ unsafe extern "C" fn _early_init() {
         la t0, 0x6e30c
         // MHINT
         csrw 0x7c5, t0
-
-    "
-    );
+        "
+        );
+    }
 
     {
         use riscv::register::*;
@@ -189,6 +192,8 @@ unsafe extern "C" fn _early_init() {
         mstatus::set_mie(); // enable global interrupt
         mstatus::set_sie(); // and supervisor interrupt
         mie::set_mext(); // and external interrupt
+                         // mie::set_msoft(); // and software interrupt
+        mie::set_mtimer(); // and timer interrupt
 
         mcounteren::set_cy(); // enable cycle counter
         mcounteren::set_tm(); // and time counter
@@ -286,15 +291,19 @@ unsafe extern "C" fn _start_rust() -> ! {
     loop {
         // delay.delay_ms(1000); panic!("fuck"); // - test trap
 
-        let mtime = pac::CLINT.mtime().read();
-        println!("mtime: {}", mtime);
+        //asm!("rdtime {0}", out(reg) time);
+        //println!("mtime: {}", time);
+
+        println!(
+            "mtime:    L:{} H:{}",
+            pac::CLINT.mtimel().read(),
+            pac::CLINT.mtimeh().read(),
+        );
 
         let mcycle = riscv::register::mcycle::read64();
-        writeln!(con, "mcycle: {}", mcycle).unwrap();
+        println!("mcycle: {}", mcycle);
 
         delay.delay_ms(1000);
-
-        pac::CLINT.msip(0).write(|w| w.set_msip(true));
     }
 }
 
