@@ -9,6 +9,8 @@ SECTIONS
  . = ALIGN(4);
  .text : {
   *(.start)
+  . = ALIGN(8);
+  *(.trap)
   *(.text*)
  } > .spl_mem
 

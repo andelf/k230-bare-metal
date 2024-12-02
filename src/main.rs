@@ -124,16 +124,38 @@ _mp_hook:
     ret",
 );
 
+#[link_section = ".trap"]
 #[no_mangle]
 unsafe extern "riscv-interrupt-m" fn _start_trap_rust() {
-    riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(10);
+    // riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(1000);
 
     println!("trap!");
 
+    let mcause = riscv::register::mcause::read();
     println!("mstatus: {:016x}", riscv::register::mstatus::read().bits());
     println!("mcause:  {:016x}", riscv::register::mcause::read().bits());
     println!("mtval:   {:016x}", riscv::register::mtval::read());
     println!("mepc:    {:016x}", riscv::register::mepc::read());
+
+    if mcause.is_interrupt() && mcause.code() == riscv::interrupt::Interrupt::MachineSoft as _ {
+        println!("Machine Software Interrupt");
+
+        pac::CLINT.msip(0).write(|w| w.set_msip(false));
+
+        return;
+    } else if mcause.is_interrupt()
+        && mcause.code() == riscv::interrupt::Interrupt::MachineTimer as _
+    {
+        println!("Machine Timer Interrupt");
+
+        return;
+    } else if mcause.is_interrupt()
+        && mcause.code() == riscv::interrupt::Interrupt::MachineExternal as _
+    {
+        println!("Machine External Interrupt");
+    } else {
+        println!("Unknown trap");
+    }
 
     loop {}
 }
@@ -192,7 +214,7 @@ unsafe extern "C" fn _early_init() {
         mstatus::set_mie(); // enable global interrupt
         mstatus::set_sie(); // and supervisor interrupt
         mie::set_mext(); // and external interrupt
-                         // mie::set_msoft(); // and software interrupt
+        mie::set_msoft(); // and software interrupt
         mie::set_mtimer(); // and timer interrupt
 
         mcounteren::set_cy(); // enable cycle counter
@@ -254,6 +276,15 @@ unsafe extern "C" fn _start_rust() -> ! {
 
     writeln!(con, "DDR init done!").unwrap();
 
+    let mstatus = riscv::register::mstatus::read();
+    println!("mstatus: {:016x}", mstatus.bits());
+
+    let mie = riscv::register::mie::read();
+    println!("mie: {:016x}", mie.bits());
+
+    let mip = riscv::register::mip::read();
+    println!("mip: {:016x}", mip.bits());
+
     let misa = riscv::register::misa::read().unwrap();
 
     println!("misa: {:x}", misa.bits());
@@ -304,6 +335,8 @@ unsafe extern "C" fn _start_rust() -> ! {
         println!("mcycle: {}", mcycle);
 
         delay.delay_ms(1000);
+
+        pac::CLINT.msip(0).write(|w| w.set_msip(true));
     }
 }
 
