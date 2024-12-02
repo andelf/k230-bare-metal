@@ -74,10 +74,15 @@ cfg_global_asm!(
     ".attribute arch, \"rv64im\"",
     ".section .start, \"ax\"
      .global _start
+
 _start:
+    .option push
+    .option norelax
+    la gp, __global_pointer$
+    .option pop
+
     la t1, __stack_start__
     addi sp, t1, -16
-    li gp, 0
 
     la t0, _start_trap_rust
     csrw mtvec, t0
@@ -96,7 +101,7 @@ _start:
 1:
     j 1b
 
-    hart1:
+hart1:
     wfi
     j hart1
     ",
@@ -106,7 +111,7 @@ _start:
 cfg_global_asm!(
     ".weak __pre_init
 __pre_init:
-     ret",
+    ret",
     ".weak _mp_hook
 _mp_hook:
     beqz a0, 2f // if hartid is 0, return true
@@ -119,6 +124,12 @@ _mp_hook:
 #[no_mangle]
 unsafe extern "riscv-interrupt-m" fn _start_trap_rust() {
     println!("trap!");
+
+    println!("mstatus: {:016x}", riscv::register::mstatus::read().bits());
+    println!("mcause:  {:016x}", riscv::register::mcause::read().bits());
+    println!("mtval:   {:016x}", riscv::register::mtval::read());
+    println!("mepc:    {:016x}", riscv::register::mepc::read());
+
     loop {}
 }
 
@@ -144,6 +155,7 @@ unsafe extern "C" fn _early_init() {
     "
     );
 
+    // performance settings
     asm!(
         "
         la t0, 0x70013
@@ -175,8 +187,10 @@ unsafe extern "C" fn _early_init() {
         mstatus::set_sie(); // and supervisor interrupt
         mie::set_mext(); // and external interrupt
 
+        // FPU init
         mstatus::set_fs(mstatus::FS::Clean);
         mstatus::set_fs(mstatus::FS::Initial);
+        asm!("csrwi fcsr, 0");
     }
 }
 
@@ -221,19 +235,6 @@ unsafe extern "C" fn _start_rust() -> ! {
 
     writeln!(con).unwrap();
 
-    // asm!("    .word 0x00000000");
-
-    //let addr = 0x9140_0000_u32;
-
-    /*
-    let mut uart = MmioUart8250::new(addr);
-    // no init need
-    uart.init(50_000_000, 115200);
-    uart.disable_received_data_available_interrupt(); // must
-    */
-
-    //let mut uart = MmioUart8250::new(addr);
-
     writeln!(con, "{}", BANNER).unwrap();
 
     writeln!(con, "Booting K230 using Rust ....").unwrap();
@@ -267,9 +268,9 @@ unsafe extern "C" fn _start_rust() -> ! {
         }
         */
 
-        // panic!("fuck"); - test trap
-        let mcycle = riscv::register::mcycle::read64();
+        // delay.delay_ms(1000); panic!("fuck"); // - test trap
 
+        let mcycle = riscv::register::mcycle::read64();
         writeln!(con, "mcycle: {}", mcycle).unwrap();
 
         // asm!(".word 0x00000000",);
@@ -283,8 +284,8 @@ unsafe extern "C" fn _start_rust() -> ! {
 unsafe fn panic(_info: &core::panic::PanicInfo) -> ! {
     asm!(
         "
-    la x31, 0x1f
-    .word 0x00000000",
+        la x31, 0x1f
+        .word 0x00000000"
     );
     loop {}
 }

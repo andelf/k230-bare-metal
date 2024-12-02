@@ -6,10 +6,12 @@ target = "riscv64gc-unknown-none-elf"
 
 [target.riscv64gc-unknown-none-elf]
 rustflags = [
+    #"-C",
+    #"target-feature=+zaamo,+xtheadbb",
     "-C",
     "link-arg=-Tlink.x",
- #   "-C",
- #   "link-arg=--Bstatic",
+    #   "-C",
+    #   "link-arg=--Bstatic",
     #"-C",
     #"link-arg=--relocatable",
 ]

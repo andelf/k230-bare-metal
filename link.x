@@ -19,6 +19,7 @@ SECTIONS
 
  . = ALIGN(4);
  .data : {
+  __global_pointer$ = . + 0x800;
   *(.data*)
  } > .spl_mem
 
