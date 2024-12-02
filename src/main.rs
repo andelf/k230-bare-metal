@@ -13,7 +13,7 @@ macro_rules! println {
     ($($arg:tt)*) => {
         {
             use core::fmt::Write;
-            writeln!(&mut crate::Console, $($arg)*).unwrap();
+            writeln!(&mut $crate::Console, $($arg)*).unwrap();
         }
     };
     () => {
@@ -242,7 +242,7 @@ impl core::fmt::Write for Console {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         for c in s.as_bytes() {
             unsafe {
-                while UART0.lsr().read().thre() == false {
+                while !UART0.lsr().read().thre() {
                     asm!("nop");
                 }
 
@@ -275,7 +275,7 @@ unsafe extern "C" fn _start_rust() -> ! {
     UART0.thr().write(|w| w.set_thr(0x41));
     UART0.thr().write(|w| w.set_thr(0x41));
 
-    write!(con, "\n").unwrap();
+    writeln!(con).unwrap();
 
     // asm!("    .word 0x00000000");
 
@@ -307,7 +307,7 @@ unsafe extern "C" fn _start_rust() -> ! {
             write!(con, "{}", c).unwrap();
         }
     }
-    writeln!(con, "").unwrap();
+    writeln!(con).unwrap();
 
     loop {
         for _ in 0..8000000 {
