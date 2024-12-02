@@ -9,6 +9,25 @@ use core::{
 use pac::UART0;
 use uart8250::MmioUart8250;
 
+#[macro_export]
+macro_rules! println {
+    ($($arg:tt)*) => {
+        {
+            use core::fmt::Write;
+            writeln!(&mut crate::Console, $($arg)*).unwrap();
+        }
+    };
+    () => {
+        {
+            use core::fmt::Write;
+            writeln!(&mut crate::Console, "").unwrap();
+        }
+    };
+
+}
+
+pub mod ddr_init;
+
 // 2-7 clock frequency
 pub const OSC24M: u32 = 24_000_000;
 pub const PLL0_OCLK: u32 = 1_600_000_000;
@@ -275,21 +294,6 @@ impl core::fmt::Write for Console {
     }
 }
 
-macro_rules! println {
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut Console, $($arg)*).unwrap();
-        }
-    };
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut Console, $($arg)*).unwrap();
-        }
-    };
-}
-
 #[no_mangle]
 unsafe extern "C" fn _start_rust() -> ! {
     //while UART0.lsr().read().dr() == false {
@@ -335,7 +339,9 @@ unsafe extern "C" fn _start_rust() -> ! {
             asm!("nop");
         }
 
-        writeln!(con, "tick!").unwrap();
+        let mcycle = riscv::register::mcycle::read64();
+
+        writeln!(con, "mcycle: {}", mcycle).unwrap();
 
         // asm!(".word 0x00000000",);
         // uart.write_byte(b'B');
