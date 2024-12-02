@@ -7,7 +7,6 @@ use core::{
     ptr,
 };
 use pac::UART0;
-use uart8250::MmioUart8250;
 
 #[macro_export]
 macro_rules! println {
@@ -188,14 +187,6 @@ _mp_hook:
     ret",
 );
 
-fn init_uart(clk_in: u32) {
-    let r = pac::UART0;
-
-    let baud = 115200;
-
-    let div = clk_in / (16 * baud) - 1;
-}
-
 #[no_mangle]
 unsafe extern "C" fn board_early_init() {
     ptr::write_volatile(0x9110_8020 as *mut u32, 0x1);
@@ -240,37 +231,6 @@ unsafe extern "C" fn board_early_init() {
 
     "
     );
-}
-
-#[no_mangle]
-unsafe extern "C" fn board_late_init() {
-    const GPIO_BASE: u32 = 0x9140_B000;
-}
-
-#[no_mangle]
-unsafe extern "C" fn dummy_call2() {
-    let addr = 0x9140_0000;
-
-    let uart = unsafe { MmioUart8250::new(addr) };
-    uart.init(50_000_000, 115200);
-    uart.write_byte(0x42);
-    uart.write_byte(0x42);
-    uart.write_byte(0x42);
-    uart.write_byte(0x42);
-    uart.write_byte(0x42);
-    uart.write_byte(0x42);
-    uart.write_byte(0x42);
-    uart.write_byte(0x42);
-
-    let mut i = 0;
-
-    while !uart.is_data_holding_registers_empty() {
-        i += 1;
-
-        if i > 100000 {
-            break;
-        }
-    }
 }
 
 // ASCII art of "Rust"
