@@ -1,0 +1,58 @@
+block/IOMUX:
+  description: IOMUX registers. layout is reverse-engineered from the device tree and header files.
+  items:
+    - name: PAD
+      description: IOMUX control register, IO0 to IO63
+      byte_offset: 0x0
+      size: 32
+      array:
+        len: 64
+        stride: 4
+      fieldset: CTRL
+fieldset/CTRL:
+  description: SWPORT abstraction.
+  fields:
+    - name: SEL
+      description: IO Function Select
+      bit_offset: 11
+      bit_size: 5
+
+    - name: SL
+      description: Slew Rate Control
+      bit_offset: 10
+      bit_size: 1
+
+    - name: MSC
+      description: Miscellaneous Control
+      bit_offset: 9
+      bit_size: 1
+
+    - name: IE
+      description: Input Enable
+      bit_offset: 8
+      bit_size: 1
+
+    - name: OE
+      description: Output Enable
+      bit_offset: 7
+      bit_size: 1
+
+    - name: PU
+      description: Pull Up Enable
+      bit_offset: 6
+      bit_size: 1
+
+    - name: PD
+      description: Pull Down Enable
+      bit_offset: 5
+      bit_size: 1
+
+    - name: DS
+      description: Drive Strength Control
+      bit_offset: 1
+      bit_size: 4
+
+    - name: ST
+      description: Schmitt Trigger Enable
+      bit_offset: 0
+      bit_size: 1
