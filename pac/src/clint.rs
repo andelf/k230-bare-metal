@@ -27,7 +27,7 @@ impl Clint {
     }
     #[doc = "Machine timer compare value low"]
     #[inline(always)]
-    pub const fn mtimecmpl(self, n: usize) -> crate::common::Reg<u32, crate::common::RW> {
+    pub const fn mtimecmp(self, n: usize) -> crate::common::Reg<u32, crate::common::RW> {
         assert!(n < 256usize);
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x4000usize + n * 8usize) as _) }
     }
@@ -39,7 +39,7 @@ impl Clint {
     }
     #[doc = "Machine timer value low"]
     #[inline(always)]
-    pub const fn mtimel(self) -> crate::common::Reg<u32, crate::common::RW> {
+    pub const fn mtime(self) -> crate::common::Reg<u32, crate::common::RW> {
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0xbff8usize) as _) }
     }
     #[doc = "Machine timer value high"]
@@ -55,7 +55,7 @@ impl Clint {
     }
     #[doc = "Supervisor timer compare value low"]
     #[inline(always)]
-    pub const fn stimecmpl(self, n: usize) -> crate::common::Reg<u32, crate::common::RW> {
+    pub const fn stimecmp(self, n: usize) -> crate::common::Reg<u32, crate::common::RW> {
         assert!(n < 256usize);
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0xd000usize + n * 8usize) as _) }
     }
@@ -67,7 +67,7 @@ impl Clint {
     }
     #[doc = "Supervisor timer value low"]
     #[inline(always)]
-    pub const fn stimel(self) -> crate::common::Reg<u32, crate::common::RW> {
+    pub const fn stime(self) -> crate::common::Reg<u32, crate::common::RW> {
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0xdff8usize) as _) }
     }
     #[doc = "Supervisor timer value high"]

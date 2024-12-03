@@ -327,7 +327,7 @@ unsafe extern "C" fn _start_rust() -> ! {
 
         println!(
             "mtime:    L:{} H:{}",
-            pac::CLINT.mtimel().read(),
+            pac::CLINT.mtime().read(),
             pac::CLINT.mtimeh().read(),
         );
 
