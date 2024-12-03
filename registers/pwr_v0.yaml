@@ -91,12 +91,14 @@ block/PWR:
     - name: MCTL_PWR_LPI_CTL
       description: MCTRLI power control
       byte_offset: 0x9c
+      fieldset: MCTL_PWR_LPI_CTL
     - name: MCTL_CLOCK_SWITCH
       description: MCTRLI clock switch
       byte_offset: 0xa0
     - name: MCTL_LPI_STAT
       description: MCTRLI power status
       byte_offset: 0xa4
+      fieldset: MCTL_LPI_STAT
     - name: DPU_PWR_TIM
       description: dpu power control timer parameter
       byte_offset: 0x100
@@ -184,3 +186,206 @@ block/PWR:
     - name: CPU_REPAIR_TIM
       description: cpu wait repaire time
       byte_offset: 0x178
+
+fieldset/MCTL_LPI_STAT:
+  description: Memory Controller LPI Status Register
+  # offset: 0xa4
+  fields:
+    - name: DDRC_INIT
+      description: "1: when power up, enter ddrc init state."
+      bit_offset: 19
+      bit_size: 1
+    - name: MCTL_AXI4_IDLE
+      description: "1: ddrc port4 idle"
+      bit_offset: 18
+      bit_size: 1
+    - name: MCTL_AXI4_WORK
+      description: "1: ddrc port4 work"
+      bit_offset: 17
+      bit_size: 1
+    - name: MCTL_AXI3_IDLE
+      description: "1: ddrc port3 idle"
+      bit_offset: 16
+      bit_size: 1
+    - name: MCTL_AXI3_WORK
+      description: "1: ddrc port3 work"
+      bit_offset: 15
+      bit_size: 1
+    - name: MCTL_AXI2_IDLE
+      description: "1: ddrc port2 idle"
+      bit_offset: 14
+      bit_size: 1
+    - name: MCTL_AXI2_WORK
+      description: "1: ddrc port2 work"
+      bit_offset: 13
+      bit_size: 1
+    - name: MCTL_AXI1_IDLE
+      description: "1: ddrc port1 idle"
+      bit_offset: 12
+      bit_size: 1
+    - name: MCTL_AXI1_WORK
+      description: "1: ddrc port1 work"
+      bit_offset: 11
+      bit_size: 1
+    - name: MCTL_AXI0_IDLE
+      description: "1: ddrc port0 idle"
+      bit_offset: 10
+      bit_size: 1
+    - name: MCTL_AXI0_WORK
+      description: "1: ddrc port0 work"
+      bit_offset: 9
+      bit_size: 1
+    - name: MCTL_DDRC_IDLE
+      description: "1: ddrc core idle"
+      bit_offset: 8
+      bit_size: 1
+    - name: MCTL_DDRC_WORK
+      description: "1: ddrc core work"
+      bit_offset: 7
+      bit_size: 1
+    - name: MCTL_LPI_WORK
+      description: |
+        Memory Controller NOC power controller is in WORK state.
+        0x1: NOC logics in this power domain is in mission state;
+        0x0: no change.
+      bit_offset: 6
+      bit_size: 1
+    - name: MCTL_LPI_IDLE
+      description: |
+        Memory Controller NOC power controller is in IDLE state.
+        0x1: NOC logics in this power domain is in idle state;
+        0x0: no change.
+      bit_offset: 5
+      bit_size: 1
+    - name: MCTL_PWR_STAT
+      description: |
+        Memory Controller Power Control State:
+        0x0: Work;
+        0x1: DisconnectNoC;
+        0x2: SelfRefresh;
+        0x3: Retention;
+        0x4: ResetOn;
+        0x5: EnableISO;
+        0x6: PowerOff;
+        0x7: BringUpPower;
+        0x8: DisableISO;
+        0x9: ResetClkOn;
+        0xa: ResetRecover;
+        0xb: ResetRemove;
+        0xc: MemctlInit;
+        0xd: ConnectNoC.
+      bit_offset: 0
+      bit_size: 5
+fieldset/MCTL_PWR_LPI_CTL:
+  description: Memory Controller Power LPI Control Register
+  fields:
+    - name: MCTL_HW_PWR_MODE
+      description: |
+        1: hardware auto trigger self refresh through ddrc low power interface
+        0: software control ddrc self refresh
+      bit_offset: 21
+      bit_size: 1
+    - name: MCTL_DDRC_CORE_CLKEN
+      description: |
+        1: use ddrc core low power interface to control ddrc core clock
+        During ddr low power process this bit should be set to 0, otherwise ddrc core
+        clock will be gated. This doesn fulfill ddrc requirement. During ddrc bring up
+        clock should be stable.
+      bit_offset: 20
+      bit_size: 1
+    - name: MCTL_PWR_MODE
+      description: "0: power off, 1: clock off"
+      bit_offset: 19
+      bit_size: 1
+    - name: MCTL_DFI_INIT_DONE
+      description: "after initialize ddr phy, disable ddrc low power interface"
+      bit_offset: 18
+      bit_size: 1
+    - name: MCTL_DDRC_INIT_DONE
+      description: "when power up, first initialize ddrc, after initialize dessert core reset"
+      bit_offset: 17
+      bit_size: 1
+    - name: MCTL_PWR_OK_IN
+      description: "rmu set to 1 during reset phase after power up,when need to sleep, soft set this bit to 0"
+      bit_offset: 16
+      bit_size: 1
+    - name: MCTL_AXI4_EXIT_IDLE
+      description: "ddrc axi port4 clock domain exit low power request"
+      bit_offset: 15
+      bit_size: 1
+    - name: MCTL_AXI3_EXIT_IDLE
+      description: "ddrc axi port3 clock domain exit low power request"
+      bit_offset: 14
+      bit_size: 1
+    - name: MCTL_AXI2_EXIT_IDLE
+      description: "ddrc axi port2 clock domain exit low power request"
+      bit_offset: 13
+      bit_size: 1
+    - name: MCTL_AXI1_EXIT_IDLE
+      description: "ddrc axi port1 clock domain exit low power request"
+      bit_offset: 12
+      bit_size: 1
+    - name: MCTL_AXI0_EXIT_IDLE
+      description: "ddrc axi port0 clock domain exit low power request"
+      bit_offset: 11
+      bit_size: 1
+    - name: MCTL_EXIT_IDLE
+      description: "ddrc core exit low power request"
+      bit_offset: 10
+      bit_size: 1
+    - name: MCTL_AXI4_GO_IDLE
+      description: "ddrc axi port4 clock domain low power request"
+      bit_offset: 9
+      bit_size: 1
+    - name: MCTL_AXI3_GO_IDLE
+      description: "ddrc axi port3 clock domain low power request"
+      bit_offset: 8
+      bit_size: 1
+    - name: MCTL_AXI2_GO_IDLE
+      description: "ddrc axi port2 clock domain low power request"
+      bit_offset: 7
+      bit_size: 1
+    - name: MCTL_AXI1_GO_IDLE
+      description: "ddrc axi port1 clock domain low power request"
+      bit_offset: 6
+      bit_size: 1
+    - name: MCTL_AXI0_GO_IDLE
+      description: "ddrc axi port0 clock domain low power request"
+      bit_offset: 5
+      bit_size: 1
+    - name: MCTL_GO_IDLE
+      description: "ddrc core low power request"
+      bit_offset: 4
+      bit_size: 1
+    - name: MCTL_LPI_EXIT_IDLE
+      description: |
+        Memory Controller NOC power controller exit IDLE trigger. This is a wirte-only
+        self-clearing bit.
+        0x1: request NOC logic in this power domain exiting idle state;
+        0x0: no operation.
+      bit_offset: 3
+      bit_size: 1
+    - name: MCTL_LPI_GO_IDLE
+      description: |
+        Memory Controller NOC power controller go IDLE trigger. This is a wirte-only
+        self-clearing bit.
+        0x1: request NOC logic in this power domain entering idle state;
+        0x0: no operation.
+      bit_offset: 2
+      bit_size: 1
+    - name: MCTL_PWR_UP_REQ
+      description: |
+        Memory Controller power domain go POWER-ON trigger. This bit will be
+        cleared by a hardware ack signal automatically.
+        0x1: request Memory Controller power domain entering PowerOn state;
+        0x0: no operation.
+      bit_offset: 1
+      bit_size: 1
+    - name: MCTL_PWR_OFF_REQ
+      description: |
+        Memory Controller power domain go POWER-OFF trigger. This bit will be
+        cleared by a hardware ack signal automatically.
+        0x1: request Memory Controller power domain entering idle state;
+        0x0: no operation.
+      bit_offset: 0
+      bit_size: 1

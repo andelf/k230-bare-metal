@@ -166,7 +166,9 @@ impl Pwr {
     }
     #[doc = "MCTRLI power control"]
     #[inline(always)]
-    pub const fn mctl_pwr_lpi_ctl(self) -> crate::common::Reg<u32, crate::common::RW> {
+    pub const fn mctl_pwr_lpi_ctl(
+        self,
+    ) -> crate::common::Reg<regs::MctlPwrLpiCtl, crate::common::RW> {
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x9cusize) as _) }
     }
     #[doc = "MCTRLI clock switch"]
@@ -176,7 +178,7 @@ impl Pwr {
     }
     #[doc = "MCTRLI power status"]
     #[inline(always)]
-    pub const fn mctl_lpi_stat(self) -> crate::common::Reg<u32, crate::common::RW> {
+    pub const fn mctl_lpi_stat(self) -> crate::common::Reg<regs::MctlLpiStat, crate::common::RW> {
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0xa4usize) as _) }
     }
     #[doc = "dpu power control timer parameter"]
@@ -323,5 +325,449 @@ impl Pwr {
     #[inline(always)]
     pub const fn cpu_repair_tim(self) -> crate::common::Reg<u32, crate::common::RW> {
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x0178usize) as _) }
+    }
+}
+pub mod regs {
+    #[doc = "Memory Controller LPI Status Register"]
+    #[repr(transparent)]
+    #[derive(Copy, Clone, Eq, PartialEq)]
+    pub struct MctlLpiStat(pub u32);
+    impl MctlLpiStat {
+        #[doc = "Memory Controller Power Control State: 0x0: Work; 0x1: DisconnectNoC; 0x2: SelfRefresh; 0x3: Retention; 0x4: ResetOn; 0x5: EnableISO; 0x6: PowerOff; 0x7: BringUpPower; 0x8: DisableISO; 0x9: ResetClkOn; 0xa: ResetRecover; 0xb: ResetRemove; 0xc: MemctlInit; 0xd: ConnectNoC."]
+        #[inline(always)]
+        pub const fn mctl_pwr_stat(&self) -> u8 {
+            let val = (self.0 >> 0usize) & 0x1f;
+            val as u8
+        }
+        #[doc = "Memory Controller Power Control State: 0x0: Work; 0x1: DisconnectNoC; 0x2: SelfRefresh; 0x3: Retention; 0x4: ResetOn; 0x5: EnableISO; 0x6: PowerOff; 0x7: BringUpPower; 0x8: DisableISO; 0x9: ResetClkOn; 0xa: ResetRecover; 0xb: ResetRemove; 0xc: MemctlInit; 0xd: ConnectNoC."]
+        #[inline(always)]
+        pub fn set_mctl_pwr_stat(&mut self, val: u8) {
+            self.0 = (self.0 & !(0x1f << 0usize)) | (((val as u32) & 0x1f) << 0usize);
+        }
+        #[doc = "Memory Controller NOC power controller is in IDLE state. 0x1: NOC logics in this power domain is in idle state; 0x0: no change."]
+        #[inline(always)]
+        pub const fn mctl_lpi_idle(&self) -> bool {
+            let val = (self.0 >> 5usize) & 0x01;
+            val != 0
+        }
+        #[doc = "Memory Controller NOC power controller is in IDLE state. 0x1: NOC logics in this power domain is in idle state; 0x0: no change."]
+        #[inline(always)]
+        pub fn set_mctl_lpi_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 5usize)) | (((val as u32) & 0x01) << 5usize);
+        }
+        #[doc = "Memory Controller NOC power controller is in WORK state. 0x1: NOC logics in this power domain is in mission state; 0x0: no change."]
+        #[inline(always)]
+        pub const fn mctl_lpi_work(&self) -> bool {
+            let val = (self.0 >> 6usize) & 0x01;
+            val != 0
+        }
+        #[doc = "Memory Controller NOC power controller is in WORK state. 0x1: NOC logics in this power domain is in mission state; 0x0: no change."]
+        #[inline(always)]
+        pub fn set_mctl_lpi_work(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 6usize)) | (((val as u32) & 0x01) << 6usize);
+        }
+        #[doc = "1: ddrc core work"]
+        #[inline(always)]
+        pub const fn mctl_ddrc_work(&self) -> bool {
+            let val = (self.0 >> 7usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc core work"]
+        #[inline(always)]
+        pub fn set_mctl_ddrc_work(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 7usize)) | (((val as u32) & 0x01) << 7usize);
+        }
+        #[doc = "1: ddrc core idle"]
+        #[inline(always)]
+        pub const fn mctl_ddrc_idle(&self) -> bool {
+            let val = (self.0 >> 8usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc core idle"]
+        #[inline(always)]
+        pub fn set_mctl_ddrc_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 8usize)) | (((val as u32) & 0x01) << 8usize);
+        }
+        #[doc = "1: ddrc port0 work"]
+        #[inline(always)]
+        pub const fn mctl_axi0_work(&self) -> bool {
+            let val = (self.0 >> 9usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port0 work"]
+        #[inline(always)]
+        pub fn set_mctl_axi0_work(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 9usize)) | (((val as u32) & 0x01) << 9usize);
+        }
+        #[doc = "1: ddrc port0 idle"]
+        #[inline(always)]
+        pub const fn mctl_axi0_idle(&self) -> bool {
+            let val = (self.0 >> 10usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port0 idle"]
+        #[inline(always)]
+        pub fn set_mctl_axi0_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 10usize)) | (((val as u32) & 0x01) << 10usize);
+        }
+        #[doc = "1: ddrc port1 work"]
+        #[inline(always)]
+        pub const fn mctl_axi1_work(&self) -> bool {
+            let val = (self.0 >> 11usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port1 work"]
+        #[inline(always)]
+        pub fn set_mctl_axi1_work(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 11usize)) | (((val as u32) & 0x01) << 11usize);
+        }
+        #[doc = "1: ddrc port1 idle"]
+        #[inline(always)]
+        pub const fn mctl_axi1_idle(&self) -> bool {
+            let val = (self.0 >> 12usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port1 idle"]
+        #[inline(always)]
+        pub fn set_mctl_axi1_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 12usize)) | (((val as u32) & 0x01) << 12usize);
+        }
+        #[doc = "1: ddrc port2 work"]
+        #[inline(always)]
+        pub const fn mctl_axi2_work(&self) -> bool {
+            let val = (self.0 >> 13usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port2 work"]
+        #[inline(always)]
+        pub fn set_mctl_axi2_work(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 13usize)) | (((val as u32) & 0x01) << 13usize);
+        }
+        #[doc = "1: ddrc port2 idle"]
+        #[inline(always)]
+        pub const fn mctl_axi2_idle(&self) -> bool {
+            let val = (self.0 >> 14usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port2 idle"]
+        #[inline(always)]
+        pub fn set_mctl_axi2_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 14usize)) | (((val as u32) & 0x01) << 14usize);
+        }
+        #[doc = "1: ddrc port3 work"]
+        #[inline(always)]
+        pub const fn mctl_axi3_work(&self) -> bool {
+            let val = (self.0 >> 15usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port3 work"]
+        #[inline(always)]
+        pub fn set_mctl_axi3_work(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 15usize)) | (((val as u32) & 0x01) << 15usize);
+        }
+        #[doc = "1: ddrc port3 idle"]
+        #[inline(always)]
+        pub const fn mctl_axi3_idle(&self) -> bool {
+            let val = (self.0 >> 16usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port3 idle"]
+        #[inline(always)]
+        pub fn set_mctl_axi3_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 16usize)) | (((val as u32) & 0x01) << 16usize);
+        }
+        #[doc = "1: ddrc port4 work"]
+        #[inline(always)]
+        pub const fn mctl_axi4_work(&self) -> bool {
+            let val = (self.0 >> 17usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port4 work"]
+        #[inline(always)]
+        pub fn set_mctl_axi4_work(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 17usize)) | (((val as u32) & 0x01) << 17usize);
+        }
+        #[doc = "1: ddrc port4 idle"]
+        #[inline(always)]
+        pub const fn mctl_axi4_idle(&self) -> bool {
+            let val = (self.0 >> 18usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: ddrc port4 idle"]
+        #[inline(always)]
+        pub fn set_mctl_axi4_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 18usize)) | (((val as u32) & 0x01) << 18usize);
+        }
+        #[doc = "1: when power up, enter ddrc init state."]
+        #[inline(always)]
+        pub const fn ddrc_init(&self) -> bool {
+            let val = (self.0 >> 19usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: when power up, enter ddrc init state."]
+        #[inline(always)]
+        pub fn set_ddrc_init(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 19usize)) | (((val as u32) & 0x01) << 19usize);
+        }
+    }
+    impl Default for MctlLpiStat {
+        #[inline(always)]
+        fn default() -> MctlLpiStat {
+            MctlLpiStat(0)
+        }
+    }
+    #[doc = "Memory Controller Power LPI Control Register"]
+    #[repr(transparent)]
+    #[derive(Copy, Clone, Eq, PartialEq)]
+    pub struct MctlPwrLpiCtl(pub u32);
+    impl MctlPwrLpiCtl {
+        #[doc = "Memory Controller power domain go POWER-OFF trigger. This bit will be cleared by a hardware ack signal automatically. 0x1: request Memory Controller power domain entering idle state; 0x0: no operation."]
+        #[inline(always)]
+        pub const fn mctl_pwr_off_req(&self) -> bool {
+            let val = (self.0 >> 0usize) & 0x01;
+            val != 0
+        }
+        #[doc = "Memory Controller power domain go POWER-OFF trigger. This bit will be cleared by a hardware ack signal automatically. 0x1: request Memory Controller power domain entering idle state; 0x0: no operation."]
+        #[inline(always)]
+        pub fn set_mctl_pwr_off_req(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 0usize)) | (((val as u32) & 0x01) << 0usize);
+        }
+        #[doc = "Memory Controller power domain go POWER-ON trigger. This bit will be cleared by a hardware ack signal automatically. 0x1: request Memory Controller power domain entering PowerOn state; 0x0: no operation."]
+        #[inline(always)]
+        pub const fn mctl_pwr_up_req(&self) -> bool {
+            let val = (self.0 >> 1usize) & 0x01;
+            val != 0
+        }
+        #[doc = "Memory Controller power domain go POWER-ON trigger. This bit will be cleared by a hardware ack signal automatically. 0x1: request Memory Controller power domain entering PowerOn state; 0x0: no operation."]
+        #[inline(always)]
+        pub fn set_mctl_pwr_up_req(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 1usize)) | (((val as u32) & 0x01) << 1usize);
+        }
+        #[doc = "Memory Controller NOC power controller go IDLE trigger. This is a wirte-only self-clearing bit. 0x1: request NOC logic in this power domain entering idle state; 0x0: no operation."]
+        #[inline(always)]
+        pub const fn mctl_lpi_go_idle(&self) -> bool {
+            let val = (self.0 >> 2usize) & 0x01;
+            val != 0
+        }
+        #[doc = "Memory Controller NOC power controller go IDLE trigger. This is a wirte-only self-clearing bit. 0x1: request NOC logic in this power domain entering idle state; 0x0: no operation."]
+        #[inline(always)]
+        pub fn set_mctl_lpi_go_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 2usize)) | (((val as u32) & 0x01) << 2usize);
+        }
+        #[doc = "Memory Controller NOC power controller exit IDLE trigger. This is a wirte-only self-clearing bit. 0x1: request NOC logic in this power domain exiting idle state; 0x0: no operation."]
+        #[inline(always)]
+        pub const fn mctl_lpi_exit_idle(&self) -> bool {
+            let val = (self.0 >> 3usize) & 0x01;
+            val != 0
+        }
+        #[doc = "Memory Controller NOC power controller exit IDLE trigger. This is a wirte-only self-clearing bit. 0x1: request NOC logic in this power domain exiting idle state; 0x0: no operation."]
+        #[inline(always)]
+        pub fn set_mctl_lpi_exit_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 3usize)) | (((val as u32) & 0x01) << 3usize);
+        }
+        #[doc = "ddrc core low power request"]
+        #[inline(always)]
+        pub const fn mctl_go_idle(&self) -> bool {
+            let val = (self.0 >> 4usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc core low power request"]
+        #[inline(always)]
+        pub fn set_mctl_go_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 4usize)) | (((val as u32) & 0x01) << 4usize);
+        }
+        #[doc = "ddrc axi port0 clock domain low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi0_go_idle(&self) -> bool {
+            let val = (self.0 >> 5usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port0 clock domain low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi0_go_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 5usize)) | (((val as u32) & 0x01) << 5usize);
+        }
+        #[doc = "ddrc axi port1 clock domain low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi1_go_idle(&self) -> bool {
+            let val = (self.0 >> 6usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port1 clock domain low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi1_go_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 6usize)) | (((val as u32) & 0x01) << 6usize);
+        }
+        #[doc = "ddrc axi port2 clock domain low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi2_go_idle(&self) -> bool {
+            let val = (self.0 >> 7usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port2 clock domain low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi2_go_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 7usize)) | (((val as u32) & 0x01) << 7usize);
+        }
+        #[doc = "ddrc axi port3 clock domain low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi3_go_idle(&self) -> bool {
+            let val = (self.0 >> 8usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port3 clock domain low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi3_go_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 8usize)) | (((val as u32) & 0x01) << 8usize);
+        }
+        #[doc = "ddrc axi port4 clock domain low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi4_go_idle(&self) -> bool {
+            let val = (self.0 >> 9usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port4 clock domain low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi4_go_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 9usize)) | (((val as u32) & 0x01) << 9usize);
+        }
+        #[doc = "ddrc core exit low power request"]
+        #[inline(always)]
+        pub const fn mctl_exit_idle(&self) -> bool {
+            let val = (self.0 >> 10usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc core exit low power request"]
+        #[inline(always)]
+        pub fn set_mctl_exit_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 10usize)) | (((val as u32) & 0x01) << 10usize);
+        }
+        #[doc = "ddrc axi port0 clock domain exit low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi0_exit_idle(&self) -> bool {
+            let val = (self.0 >> 11usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port0 clock domain exit low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi0_exit_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 11usize)) | (((val as u32) & 0x01) << 11usize);
+        }
+        #[doc = "ddrc axi port1 clock domain exit low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi1_exit_idle(&self) -> bool {
+            let val = (self.0 >> 12usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port1 clock domain exit low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi1_exit_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 12usize)) | (((val as u32) & 0x01) << 12usize);
+        }
+        #[doc = "ddrc axi port2 clock domain exit low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi2_exit_idle(&self) -> bool {
+            let val = (self.0 >> 13usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port2 clock domain exit low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi2_exit_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 13usize)) | (((val as u32) & 0x01) << 13usize);
+        }
+        #[doc = "ddrc axi port3 clock domain exit low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi3_exit_idle(&self) -> bool {
+            let val = (self.0 >> 14usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port3 clock domain exit low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi3_exit_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 14usize)) | (((val as u32) & 0x01) << 14usize);
+        }
+        #[doc = "ddrc axi port4 clock domain exit low power request"]
+        #[inline(always)]
+        pub const fn mctl_axi4_exit_idle(&self) -> bool {
+            let val = (self.0 >> 15usize) & 0x01;
+            val != 0
+        }
+        #[doc = "ddrc axi port4 clock domain exit low power request"]
+        #[inline(always)]
+        pub fn set_mctl_axi4_exit_idle(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 15usize)) | (((val as u32) & 0x01) << 15usize);
+        }
+        #[doc = "rmu set to 1 during reset phase after power up,when need to sleep, soft set this bit to 0"]
+        #[inline(always)]
+        pub const fn mctl_pwr_ok_in(&self) -> bool {
+            let val = (self.0 >> 16usize) & 0x01;
+            val != 0
+        }
+        #[doc = "rmu set to 1 during reset phase after power up,when need to sleep, soft set this bit to 0"]
+        #[inline(always)]
+        pub fn set_mctl_pwr_ok_in(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 16usize)) | (((val as u32) & 0x01) << 16usize);
+        }
+        #[doc = "when power up, first initialize ddrc, after initialize dessert core reset"]
+        #[inline(always)]
+        pub const fn mctl_ddrc_init_done(&self) -> bool {
+            let val = (self.0 >> 17usize) & 0x01;
+            val != 0
+        }
+        #[doc = "when power up, first initialize ddrc, after initialize dessert core reset"]
+        #[inline(always)]
+        pub fn set_mctl_ddrc_init_done(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 17usize)) | (((val as u32) & 0x01) << 17usize);
+        }
+        #[doc = "after initialize ddr phy, disable ddrc low power interface"]
+        #[inline(always)]
+        pub const fn mctl_dfi_init_done(&self) -> bool {
+            let val = (self.0 >> 18usize) & 0x01;
+            val != 0
+        }
+        #[doc = "after initialize ddr phy, disable ddrc low power interface"]
+        #[inline(always)]
+        pub fn set_mctl_dfi_init_done(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 18usize)) | (((val as u32) & 0x01) << 18usize);
+        }
+        #[doc = "0: power off, 1: clock off"]
+        #[inline(always)]
+        pub const fn mctl_pwr_mode(&self) -> bool {
+            let val = (self.0 >> 19usize) & 0x01;
+            val != 0
+        }
+        #[doc = "0: power off, 1: clock off"]
+        #[inline(always)]
+        pub fn set_mctl_pwr_mode(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 19usize)) | (((val as u32) & 0x01) << 19usize);
+        }
+        #[doc = "1: use ddrc core low power interface to control ddrc core clock During ddr low power process this bit should be set to 0, otherwise ddrc core clock will be gated. This doesn fulfill ddrc requirement. During ddrc bring up clock should be stable."]
+        #[inline(always)]
+        pub const fn mctl_ddrc_core_clken(&self) -> bool {
+            let val = (self.0 >> 20usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: use ddrc core low power interface to control ddrc core clock During ddr low power process this bit should be set to 0, otherwise ddrc core clock will be gated. This doesn fulfill ddrc requirement. During ddrc bring up clock should be stable."]
+        #[inline(always)]
+        pub fn set_mctl_ddrc_core_clken(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 20usize)) | (((val as u32) & 0x01) << 20usize);
+        }
+        #[doc = "1: hardware auto trigger self refresh through ddrc low power interface 0: software control ddrc self refresh"]
+        #[inline(always)]
+        pub const fn mctl_hw_pwr_mode(&self) -> bool {
+            let val = (self.0 >> 21usize) & 0x01;
+            val != 0
+        }
+        #[doc = "1: hardware auto trigger self refresh through ddrc low power interface 0: software control ddrc self refresh"]
+        #[inline(always)]
+        pub fn set_mctl_hw_pwr_mode(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 21usize)) | (((val as u32) & 0x01) << 21usize);
+        }
+    }
+    impl Default for MctlPwrLpiCtl {
+        #[inline(always)]
+        fn default() -> MctlPwrLpiCtl {
+            MctlPwrLpiCtl(0)
+        }
     }
 }

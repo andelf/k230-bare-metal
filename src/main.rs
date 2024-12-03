@@ -8,7 +8,7 @@ use core::{
     ptr,
 };
 use embedded_hal::delay::DelayNs;
-use pac::UART0;
+use pac::{PWR, UART0};
 
 #[macro_export]
 macro_rules! println {
@@ -172,14 +172,17 @@ unsafe extern "riscv-interrupt-m" fn _start_trap_rust() {
 // board_early_init
 #[no_mangle]
 unsafe extern "C" fn _early_init() {
+    // STC init
     ptr::write_volatile(0x9110_8020 as *mut u32, 0x1);
     ptr::write_volatile(0x9110_8030 as *mut u32, 0x1);
     ptr::write_volatile(0x9110_8000 as *mut u32, 0x69);
 
+    // CMU?
     ptr::write_volatile(0x9110_0004 as *mut u32, 0x8019_9805);
 
     // SYSCTL_PWR_BASE_ADDRn
-    ptr::write_volatile((0x91103000_u32 + 0x158) as *mut u32, 0x0);
+    // ptr::write_volatile((0x91103000_u32 + 0x158) as *mut u32, 0x0);
+    PWR.pmu_pwr_lpi_ctl().write_value(0);
 
     // disable all pmp
     asm!(
@@ -258,8 +261,6 @@ impl core::fmt::Write for Console {
 }
 
 unsafe fn spl_device_disable() {
-    let mut value: u32;
-
     // disable ai power
     if ptr::read_volatile(0x9110302c as *const u32) & 0x2 != 0 {
         ptr::write_volatile(0x91103028 as *mut u32, 0x30001);
