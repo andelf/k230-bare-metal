@@ -334,6 +334,33 @@ unsafe fn board_init() {
     println!("DDR init done!");
 }
 
+fn blinky() {
+    // target LED, GOIO20
+    use pac::{GPIO0, GPIO1, IOMUX};
+
+    IOMUX.pad(20).modify(|w| w.set_sel(0));
+    IOMUX.pad(62).modify(|w| w.set_sel(0));
+    IOMUX.pad(63).modify(|w| w.set_sel(0));
+
+    GPIO0.swport(0).ddr().modify(|w| *w |= 1 << 20);
+    GPIO1.swport(0).ddr().modify(|w| *w |= 1 << 30);
+    GPIO1.swport(0).ddr().modify(|w| *w |= 1 << 31);
+
+    println!("dr =  {:08x}", GPIO0.swport(0).dr().read());
+    println!("ddr = {:08x}", GPIO0.swport(0).ddr().read());
+
+    loop {
+        GPIO0.swport(0).dr().modify(|w| *w ^= 1 << 20);
+        GPIO1.swport(0).dr().modify(|w| *w ^= 1 << 31);
+
+        riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(1000);
+
+        println!("blinky");
+        println!("dr =  {:08x}", GPIO0.swport(0).dr().read());
+        println!("ddr = {:08x}", GPIO0.swport(0).ddr().read());
+    }
+}
+
 #[no_mangle]
 unsafe extern "C" fn _start_rust() -> ! {
     board_init();
@@ -397,6 +424,8 @@ unsafe extern "C" fn _start_rust() -> ! {
     );
 
     let mut delay = riscv::delay::McycleDelay::new(CPU0_CORE_CLK);
+
+    blinky();
 
     loop {
         // delay.delay_ms(1000); panic!("fuck"); // - test trap

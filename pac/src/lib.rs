@@ -20,8 +20,10 @@ pub mod gpio;
 #[path = "uart_dw.rs"]
 pub mod uart;
 
+#[path = "iomux_v0.rs"]
+pub mod iomux;
+
 pub const PLIC_BASE: usize = 0x0000000_f00000000;
-pub const IOMUX_BASE: usize = 0x9110_5000;
 
 pub const PLIC: plic::Plic = unsafe { plic::Plic::from_ptr((PLIC_BASE) as *mut ()) };
 
@@ -35,6 +37,9 @@ pub const CMU: cmu::Cmu = unsafe { cmu::Cmu::from_ptr(0x9110_0000 as *mut ()) };
 pub const PWR: pwr::Pwr = unsafe { pwr::Pwr::from_ptr(0x9110_3000 as *mut ()) };
 
 pub const RMU: rmu::Rmu = unsafe { rmu::Rmu::from_ptr(0x9110_1000 as *mut ()) };
+
+pub const IOMUX: iomux::Iomux = unsafe { iomux::Iomux::from_ptr(0x9110_5000 as *mut ()) };
+pub const PMU_IOMUX: iomux::Iomux = unsafe { iomux::Iomux::from_ptr(9100_0080 as *mut ()) };
 
 pub const GPIO0: gpio::Gpio = unsafe { gpio::Gpio::from_ptr(0x9140_B000 as *mut ()) };
 pub const GPIO1: gpio::Gpio = unsafe { gpio::Gpio::from_ptr(0x9140_C000 as *mut ()) };
