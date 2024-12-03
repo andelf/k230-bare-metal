@@ -3,14 +3,14 @@
 #![allow(clippy::unnecessary_cast)]
 #![allow(clippy::erasing_op)]
 
-#[doc = "Hart block - threshold and claim"]
+#[doc = "Hart block - claim"]
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct HartCtrl {
+pub struct HartClaim {
     ptr: *mut u8,
 }
-unsafe impl Send for HartCtrl {}
-unsafe impl Sync for HartCtrl {}
-impl HartCtrl {
+unsafe impl Send for HartClaim {}
+unsafe impl Sync for HartClaim {}
+impl HartClaim {
     #[inline(always)]
     pub const unsafe fn from_ptr(ptr: *mut ()) -> Self {
         Self { ptr: ptr as _ }
@@ -19,20 +19,10 @@ impl HartCtrl {
     pub const fn as_ptr(&self) -> *mut () {
         self.ptr as _
     }
-    #[doc = "machine mode threshold register"]
-    #[inline(always)]
-    pub const fn mth(self) -> crate::common::Reg<regs::Threshold, crate::common::RW> {
-        unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x0usize) as _) }
-    }
     #[doc = "machine mode claim and complete register"]
     #[inline(always)]
     pub const fn mclaim(self) -> crate::common::Reg<regs::Claim, crate::common::RW> {
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x04usize) as _) }
-    }
-    #[doc = "supervisor mode threshold register"]
-    #[inline(always)]
-    pub const fn sth(self) -> crate::common::Reg<regs::Threshold, crate::common::RW> {
-        unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x1000usize) as _) }
     }
     #[doc = "supervisor mode claim and complete register"]
     #[inline(always)]
@@ -42,12 +32,12 @@ impl HartCtrl {
 }
 #[doc = "Hart block - MIE and SIE"]
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct HartIe {
+pub struct HartEnables {
     ptr: *mut u8,
 }
-unsafe impl Send for HartIe {}
-unsafe impl Sync for HartIe {}
-impl HartIe {
+unsafe impl Send for HartEnables {}
+unsafe impl Sync for HartEnables {}
+impl HartEnables {
     #[inline(always)]
     pub const unsafe fn from_ptr(ptr: *mut ()) -> Self {
         Self { ptr: ptr as _ }
@@ -69,6 +59,33 @@ impl HartIe {
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x0100usize + n * 4usize) as _) }
     }
 }
+#[doc = "Hart block - threshold"]
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub struct HartThreshod {
+    ptr: *mut u8,
+}
+unsafe impl Send for HartThreshod {}
+unsafe impl Sync for HartThreshod {}
+impl HartThreshod {
+    #[inline(always)]
+    pub const unsafe fn from_ptr(ptr: *mut ()) -> Self {
+        Self { ptr: ptr as _ }
+    }
+    #[inline(always)]
+    pub const fn as_ptr(&self) -> *mut () {
+        self.ptr as _
+    }
+    #[doc = "machine mode threshold register"]
+    #[inline(always)]
+    pub const fn mth(self) -> crate::common::Reg<regs::Threshold, crate::common::RW> {
+        unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x0usize) as _) }
+    }
+    #[doc = "supervisor mode threshold register"]
+    #[inline(always)]
+    pub const fn sth(self) -> crate::common::Reg<regs::Threshold, crate::common::RW> {
+        unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x1000usize) as _) }
+    }
+}
 #[doc = "PLIC."]
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Plic {
@@ -87,32 +104,38 @@ impl Plic {
     }
     #[doc = "Interrupt source priority."]
     #[inline(always)]
-    pub const fn prio(self, n: usize) -> crate::common::Reg<regs::Prio, crate::common::RW> {
+    pub const fn priority(self, n: usize) -> crate::common::Reg<regs::Priority, crate::common::RW> {
         assert!(n < 1024usize);
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x04usize + n * 4usize) as _) }
     }
-    #[doc = "Interrupt wait register."]
+    #[doc = "Interrupt wait register. IP"]
     #[inline(always)]
-    pub const fn ip(self, n: usize) -> crate::common::Reg<regs::Ip, crate::common::RW> {
+    pub const fn pending(self, n: usize) -> crate::common::Reg<regs::Pending, crate::common::RW> {
         assert!(n < 32usize);
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x1000usize + n * 4usize) as _) }
     }
-    #[doc = "no description available."]
+    #[doc = "Hart block - MIE and SIE"]
     #[inline(always)]
-    pub const fn hart_ie(self, n: usize) -> HartIe {
+    pub const fn hart_enables(self, n: usize) -> HartEnables {
         assert!(n < 256usize);
-        unsafe { HartIe::from_ptr(self.ptr.add(0x2000usize + n * 256usize) as _) }
+        unsafe { HartEnables::from_ptr(self.ptr.add(0x2000usize + n * 256usize) as _) }
     }
     #[doc = "PLIC control register."]
     #[inline(always)]
     pub const fn ctrl(self) -> crate::common::Reg<regs::Ctrl, crate::common::RW> {
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x001f_fffcusize) as _) }
     }
-    #[doc = "no description available."]
+    #[doc = "Hart block - claim"]
     #[inline(always)]
-    pub const fn hart_ctrl(self, n: usize) -> HartCtrl {
+    pub const fn hart_claim(self, n: usize) -> HartClaim {
         assert!(n < 256usize);
-        unsafe { HartCtrl::from_ptr(self.ptr.add(0x0020_0000usize + n * 8192usize) as _) }
+        unsafe { HartClaim::from_ptr(self.ptr.add(0x0020_0000usize + n * 8192usize) as _) }
+    }
+    #[doc = "Hart block - threshold"]
+    #[inline(always)]
+    pub const fn hart_threshod(self, n: usize) -> HartThreshod {
+        assert!(n < 256usize);
+        unsafe { HartThreshod::from_ptr(self.ptr.add(0x0020_0000usize + n * 8192usize) as _) }
     }
 }
 pub mod regs {
@@ -192,11 +215,11 @@ pub mod regs {
     #[doc = "Pending interrupt register."]
     #[repr(transparent)]
     #[derive(Copy, Clone, Eq, PartialEq)]
-    pub struct Ip(pub u32);
-    impl Ip {
+    pub struct Pending(pub u32);
+    impl Pending {
         #[doc = "Interrupt pending status of interrupt sources."]
         #[inline(always)]
-        pub const fn ip(&self, n: usize) -> bool {
+        pub const fn pending(&self, n: usize) -> bool {
             assert!(n < 32usize);
             let offs = 0usize + n * 1usize;
             let val = (self.0 >> offs) & 0x01;
@@ -204,39 +227,39 @@ pub mod regs {
         }
         #[doc = "Interrupt pending status of interrupt sources."]
         #[inline(always)]
-        pub fn set_ip(&mut self, n: usize, val: bool) {
+        pub fn set_pending(&mut self, n: usize, val: bool) {
             assert!(n < 32usize);
             let offs = 0usize + n * 1usize;
             self.0 = (self.0 & !(0x01 << offs)) | (((val as u32) & 0x01) << offs);
         }
     }
-    impl Default for Ip {
+    impl Default for Pending {
         #[inline(always)]
-        fn default() -> Ip {
-            Ip(0)
+        fn default() -> Pending {
+            Pending(0)
         }
     }
     #[doc = "Priority of each interrupt source."]
     #[repr(transparent)]
     #[derive(Copy, Clone, Eq, PartialEq)]
-    pub struct Prio(pub u32);
-    impl Prio {
+    pub struct Priority(pub u32);
+    impl Priority {
         #[doc = "Priority of each interrupt source."]
         #[inline(always)]
-        pub const fn prio(&self) -> u8 {
+        pub const fn priority(&self) -> u8 {
             let val = (self.0 >> 0usize) & 0x1f;
             val as u8
         }
         #[doc = "Priority of each interrupt source."]
         #[inline(always)]
-        pub fn set_prio(&mut self, val: u8) {
+        pub fn set_priority(&mut self, val: u8) {
             self.0 = (self.0 & !(0x1f << 0usize)) | (((val as u32) & 0x1f) << 0usize);
         }
     }
-    impl Default for Prio {
+    impl Default for Priority {
         #[inline(always)]
-        fn default() -> Prio {
-            Prio(0)
+        fn default() -> Priority {
+            Priority(0)
         }
     }
     #[doc = "Priority threshold."]

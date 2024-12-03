@@ -1,39 +1,53 @@
 block/PLIC:
   description: PLIC.
   items:
-    - name: PRIO
+    - name: PRIORITY
       description: Interrupt source priority.
       array:
         len: 1024
         stride: 4
       byte_offset: 4
-      fieldset: PRIO
-    - name: IP
-      description: Interrupt wait register.
+      fieldset: PRIORITY
+    - name: PENDING
+      description: Interrupt wait register. IP
       array:
         len: 32
         stride: 4
       byte_offset: 4096
-      fieldset: IP
-    - name: HART_IE
-      description: no description available.
+      fieldset: PENDING
+    - name: HART_ENABLES
+      description: Hart block - MIE and SIE
       array:
         len: 256 # max 256 cores
         stride: 0x100
       byte_offset: 0x2000
-      block: HART_IE
+      block: HART_ENABLES
     - name: CTRL
       description: PLIC control register.
       byte_offset: 0x01FFFFC
       fieldset: CTRL
-    - name: HART_CTRL
-      description: no description available.
+    - name: HART_THRESHOD
+      description: Hart block - threshold
       array:
         len: 256
         stride: 0x2000
       byte_offset: 0x200000
-      block: HART_CTRL
-block/HART_IE:
+      block: HART_THRESHOD
+    - name: HART_CLAIM
+      description: Hart block - claim
+      array:
+        len: 256
+        stride: 0x2000
+      byte_offset: 0x200000
+      block: HART_CLAIM
+    #- name: HART_CTRL
+    #  description: no description available.
+    #  array:
+    #    len: 256
+    #    stride: 0x2000
+    #  byte_offset: 0x200000
+    #  block: HART_CTRL
+block/HART_ENABLES:
   description: Hart block - MIE and SIE
   items:
     - name: MIE
@@ -50,36 +64,39 @@ block/HART_IE:
         len: 32
         stride: 4
       fieldset: ENABLE
-block/HART_CTRL:
-  description: Hart block - threshold and claim
+block/HART_THRESHOD:
+  description: Hart block - threshold
   items:
     - name: MTH
       description: machine mode threshold register
       byte_offset: 0
       fieldset: THRESHOLD
-    - name: MCLAIM
-      description: machine mode claim and complete register
-      byte_offset: 4
-      fieldset: CLAIM
     - name: STH
       description: supervisor mode threshold register
       byte_offset: 0x1000
       fieldset: THRESHOLD
+block/HART_CLAIM:
+  description: Hart block - claim
+  items:
+    - name: MCLAIM
+      description: machine mode claim and complete register
+      byte_offset: 4
+      fieldset: CLAIM
     - name: SCLAIM
       description: supervisor mode claim and complete register
       byte_offset: 0x1004
       fieldset: CLAIM
-fieldset/PRIO:
+fieldset/PRIORITY:
   description: Priority of each interrupt source.
   fields:
-    - name: PRIO
+    - name: PRIORITY
       description: Priority of each interrupt source.
       bit_offset: 0
       bit_size: 5
-fieldset/IP:
+fieldset/PENDING:
   description: Pending interrupt register.
   fields:
-    - name: IP
+    - name: PENDING
       description: Interrupt pending status of interrupt sources.
       bit_offset: 0
       bit_size: 1
