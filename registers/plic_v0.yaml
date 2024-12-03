@@ -1,0 +1,119 @@
+block/PLIC:
+  description: PLIC.
+  items:
+    - name: PRIO
+      description: Interrupt source priority.
+      array:
+        len: 1024
+        stride: 4
+      byte_offset: 4
+      fieldset: PRIO
+    - name: IP
+      description: Interrupt wait register.
+      array:
+        len: 32
+        stride: 4
+      byte_offset: 4096
+      fieldset: IP
+    - name: HART_IE
+      description: no description available.
+      array:
+        len: 256 # max 256 cores
+        stride: 0x100
+      byte_offset: 0x2000
+      block: HART_IE
+    - name: CTRL
+      description: PLIC control register.
+      byte_offset: 0x01FFFFC
+      fieldset: CTRL
+    - name: HART_CTRL
+      description: no description available.
+      array:
+        len: 256
+        stride: 0x2000
+      byte_offset: 0x200000
+      block: HART_CTRL
+block/HART_IE:
+  description: Hart block - MIE and SIE
+  items:
+    - name: MIE
+      description: Machine software interrupt pending
+      byte_offset: 0
+      array:
+        len: 32
+        stride: 4
+      fieldset: ENABLE
+    - name: SIE
+      description: Supervisor software interrupt pending
+      byte_offset: 0x100
+      array:
+        len: 32
+        stride: 4
+      fieldset: ENABLE
+block/HART_CTRL:
+  description: Hart block - threshold and claim
+  items:
+    - name: MTH
+      description: machine mode threshold register
+      byte_offset: 0
+      fieldset: THRESHOLD
+    - name: MCLAIM
+      description: machine mode claim and complete register
+      byte_offset: 4
+      fieldset: CLAIM
+    - name: STH
+      description: supervisor mode threshold register
+      byte_offset: 0x1000
+      fieldset: THRESHOLD
+    - name: SCLAIM
+      description: supervisor mode claim and complete register
+      byte_offset: 0x1004
+      fieldset: CLAIM
+fieldset/PRIO:
+  description: Priority of each interrupt source.
+  fields:
+    - name: PRIO
+      description: Priority of each interrupt source.
+      bit_offset: 0
+      bit_size: 5
+fieldset/IP:
+  description: Pending interrupt register.
+  fields:
+    - name: IP
+      description: Interrupt pending status of interrupt sources.
+      bit_offset: 0
+      bit_size: 1
+      array:
+        len: 32
+        stride: 1
+fieldset/CTRL:
+  description: PLIC control register.
+  fields:
+    - name: S_PER
+      description: Permission bit for supervisor mode.
+      bit_offset: 0
+      bit_size: 1
+fieldset/ENABLE:
+  description: Enable register.
+  fields:
+    - name: ENABLE
+      description: Enable bit for each interrupt source.
+      bit_offset: 0
+      bit_size: 1
+      array:
+        len: 32
+        stride: 1
+fieldset/THRESHOLD:
+  description: Priority threshold.
+  fields:
+    - name: THRESHOLD
+      description: Priority threshold.
+      bit_offset: 0
+      bit_size: 5
+fieldset/CLAIM:
+  description: Claim and complete register.
+  fields:
+    - name: CLAIM_ID
+      description: Claim register.
+      bit_offset: 0
+      bit_size: 5

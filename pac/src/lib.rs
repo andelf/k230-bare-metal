@@ -3,6 +3,7 @@
 pub mod common;
 
 pub mod clint;
+pub mod plic;
 
 #[path = "boot_v0.rs"]
 pub mod boot;
@@ -20,6 +21,9 @@ pub mod gpio;
 pub mod uart;
 
 pub const PLIC_BASE: usize = 0x0000000_f00000000;
+pub const IOMUX_BASE: usize = 0x9110_5000;
+
+pub const PLIC: plic::Plic = unsafe { plic::Plic::from_ptr((PLIC_BASE) as *mut ()) };
 
 pub const CLINT: clint::Clint =
     unsafe { clint::Clint::from_ptr((PLIC_BASE + 0x0400_0000) as *mut ()) };
