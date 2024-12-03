@@ -1,69 +1,156 @@
 block/GPIO:
-  description: General Purpose Input/Output. group0 registers is 0x9140_B000, group1 registers is 0x9140_C000
+  description: DW_apb_gpio, General Purpose I/O
   items:
-    - name: SWPORTA_DR
-      description: Port A data register
+    - name: SWPORT
+      description: SWPORT abstraction.
       byte_offset: 0x00
-    - name: SWPORTA_DDR
-      description: Port A Data Direction Register
-      byte_offset: 0x04
-    - name: SWPORTA_CTL
-      description: Port A data source register
-      byte_offset: 0x08
-    - name: SWPORTB_DR
-      description: Port B data register
-      byte_offset: 0x0c
-    - name: SWPORTB_DDR
-      description: Port B Data Direction Register
-      byte_offset: 0x10
-    - name: SWPORTB_CTL
-      description: Port B data source register
-      byte_offset: 0x14
+      array:
+        len: 4 # A to D
+        stride: 12
+      block: PORT
     - name: INTEN
       description: Interrupt enable register Note This register is available only if Port A is configured
       byte_offset: 0x30
+      bit_size: 32
     - name: INTMASK
       description: Interrupt mask register Note This register is available only if Port A is configured to generate
       byte_offset: 0x34
+      bit_size: 32
     - name: INTTYPE_LEVEL
-      description: Interrupt level Note This register is available only if Port A is configured to generate interrupts
+      description: Interrupt level Note This register is available only if Port A is configured to generate interrupts. 0 = level, 1 = edge
       byte_offset: 0x38
+      bit_size: 32
     - name: INT_POLARITY
       description: Interrupt polarity Note This register is available only if Port A is configured to generate interrupts
       byte_offset: 0x3c
+      bit_size: 32
     - name: INTSTATUS
       description: Interrupt status Note This register is available only if Port A is configured to generate interrupts
       byte_offset: 0x40
+      bit_size: 32
     - name: RAW_INTSTATUS
       description: Raw interrupt status Note This register is available only if Port A is configured to generate
       byte_offset: 0x44
+      bit_size: 32
     - name: DEBOUNCE
       description: Debounce enable Note This register is available only if Port A is configured to generate interrupts
       byte_offset: 0x48
+      bit_size: 32
     - name: PORTA_EOI
       description: Port A clear interrupt register Note This register is available only if Port A is configured to
       byte_offset: 0x4c
-    - name: EXT_PORTA
-      description: External port A register
+    - name: EXT_PORT
+      description: External port register
       byte_offset: 0x50
-    - name: EXT_PORTB
-      description: Port B external port register
-      byte_offset: 0x54
+      bit_size: 32
+      array:
+        len: 4
+        stride: 4
     - name: LS_SYNC
       description: Synchronization level
       byte_offset: 0x60
+      bit_size: 32
     - name: ID_CODE
       description: GPIO ID code
       byte_offset: 0x64
+      bit_size: 32
     - name: INT_BOTHEDGE
       description: Interrupt Both Edge type Note This register is available only if PORT A is configured to generate
       byte_offset: 0x68
+      bit_size: 32
     - name: VER_ID_CODE
       description: GPIO Component Version
       byte_offset: 0x6c
+      bit_size: 32
     - name: CONFIG_REG2
       description: GPIO Configuration Register 2 This register is a read-only register that is present when the configuration
       byte_offset: 0x70
+      bit_size: 32
+      fieldset: CONFIG_REG2
     - name: CONFIG_REG1
       description: GPIO Configuration Register 1 This register is present when the configuration parameter GPIO_ADD_ENCODED_PARAMS
       byte_offset: 0x74
+      bit_size: 32
+      fieldset: CONFIG_REG1
+block/PORT:
+  description: SWPORT abstraction.
+  items:
+    - name: DR
+      description: Port data register
+      byte_offset: 0x00
+    - name: DDR
+      description: Port Data Direction Register. 0 = input, 1 = output
+      byte_offset: 0x04
+    - name: CTL
+      description: Port data source register. 0 = software, 1 = hardware
+      byte_offset: 0x08
+fieldset/CONFIG_REG2:
+  description: GPIO Configuration Register 2
+  fields:
+    - name: ENCODED_ID_PWIDTH
+      description: GPIO_PWIDTH_x-1
+      bit_offset: 0
+      bit_size: 5
+      array:
+        len: 4
+        stride: 5
+fieldset/CONFIG_REG1:
+  description: GPIO Configuration Register 1
+  fields:
+    - name: APB_DATA_WIDTH
+      description: GPIO_APB_DATA_WIDTH
+      bit_offset: 0
+      bit_size: 2
+      enum: APB_DATA_WIDTH
+    - name: NUM_PORTS
+      description: GPIO_NUM_PORT - 1
+      bit_offset: 2
+      bit_size: 2
+    - name: PORT_SINGLE_CTL
+      description: GPIO_PORTx_SINGLE_CTL, if port is controlled from a single source
+      bit_offset: 4
+      bit_size: 1
+      array:
+        len: 4
+        stride: 1
+    - name: HW_PORT
+      description: GPIO_HW_PORTx, if port has external, auxiliary hardware signals
+      bit_offset: 8
+      bit_size: 1
+      array:
+        len: 4
+        stride: 1
+    - name: PORTA_INTR
+      description: GPIO_PORTA_INTR, if PORT is used as an interrupt source
+      bit_offset: 12
+      bit_size: 1
+    - name: DEBOUNCE
+      description: GPIO_DEBOUNCE, if include debounce capability
+      bit_offset: 13
+      bit_size: 1
+    - name: ADD_ENCODED_PARAMS
+      description: GPIO_ADD_ENCODED_PARAMS, if encoded parameters added
+      bit_offset: 14
+      bit_size: 1
+    - name: GPIO_ID
+      description: GPIO_ID included
+      bit_offset: 15
+      bit_size: 1
+    - name: ENCODED_ID_WIDTH
+      description: GPIO_ID_WIDTH
+      bit_offset: 16
+      bit_size: 5
+    - name: INTERRUPT_BOTH_EDGE_TYPE
+      description: GPIO_INT_BOTH_EDGE, if interrupt generation on both rising and falling edge
+      bit_offset: 21
+      bit_size: 1
+enum/APB_DATA_WIDTH:
+  description: APB data width
+  bit_size: 2
+  variants:
+    - name: _8BITS
+      value: 0x0
+    - name: _16BITS
+      value: 0x1
+    - name: _32BITS
+      value: 0x2

@@ -317,6 +317,20 @@ unsafe extern "C" fn _start_rust() -> ! {
     asm!("csrr {0}, 0xfc1", out(reg) mapbaddr);
     println!("PLIC base: 0x{:016x}", mapbaddr);
 
+    let r = pac::GPIO0.config_reg1().read();
+    println!(
+        "GPIO0 config_reg1: num_ports={} debounce={} PA_hw_ctl={} PA_single_ctl={}",
+        r.num_ports() + 1,
+        r.debounce(),
+        r.hw_port(0),
+        r.port_single_ctl(0)
+    );
+    let r = pac::GPIO0.config_reg2().read();
+    println!("GPIO0 config_reg2: len(PA)={}", r.encoded_id_pwidth(0) + 1,);
+
+    let r = pac::GPIO0.ver_id_code().read();
+    println!("GPIO0 ver id=0x{:08x}", r);
+
     let mut delay = riscv::delay::McycleDelay::new(CPU0_CORE_CLK);
 
     loop {
