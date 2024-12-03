@@ -1968,102 +1968,102 @@ pub fn board_ddr_init() {
 
     while (train_data & 0x7) != 0x07 {
         data = reg_read(DDR_REG_BASE + 0x000d0004 * 4 + 0x02000000);
-        while ((data & 0x1) != 0x0) {
+        while (data & 0x1) != 0x0 {
             data = reg_read(DDR_REG_BASE + 0x000d0004 * 4 + 0x02000000);
         }
 
         train_data = reg_read(DDR_REG_BASE + 0x000d0032 * 4 + 0x02000000);
         match train_data {
             0x00000000 => {
-                println!("{:08x}: PMU Major Msg: End of initialization", train_data);
+                println!("{:02x}: PMU Major Msg: End of initialization", train_data);
             }
             0x00000001 => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of fine write leveling",
+                    "{:02x}: PMU Major Msg: End of fine write leveling",
                     train_data
                 );
             }
             0x00000002 => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of read enable training",
+                    "{:02x}: PMU Major Msg: End of read enable training",
                     train_data
                 );
             }
             0x00000003 => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of read delay center optimization",
+                    "{:02x}: PMU Major Msg: End of read delay center optimization",
                     train_data
                 );
             }
             0x00000004 => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of write delay center optimization",
+                    "{:02x}: PMU Major Msg: End of write delay center optimization",
                     train_data
                 );
             }
             0x00000005 => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of 2D read delay/voltage center optimization",
+                    "{:02x}: PMU Major Msg: End of 2D read delay/voltage center optimization",
                     train_data
                 );
             }
             0x00000006 => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of 2D write delay /voltage center optimization",
+                    "{:02x}: PMU Major Msg: End of 2D write delay /voltage center optimization",
                     train_data
                 );
             }
             0x00000007 => {
                 println!(
-                    "{:08x}: PMU Major Msg: Firmware run has completed",
+                    "{:02x}: PMU Major Msg: Firmware run has completed",
                     train_data
                 );
             }
             0x00000008 => {
                 println!(
-                    "{:08x}: PMU Major Msg: Enter streaming message mode",
+                    "{:02x}: PMU Major Msg: Enter streaming message mode",
                     train_data
                 );
             }
             0x00000009 => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of max read latency training",
+                    "{:02x}: PMU Major Msg: End of max read latency training",
                     train_data
                 );
             }
             0x0000000a => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of read dq deskew training",
+                    "{:02x}: PMU Major Msg: End of read dq deskew training",
                     train_data
                 );
             }
             0x0000000b => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of LCDL offset calibration",
+                    "{:02x}: PMU Major Msg: End of LCDL offset calibration",
                     train_data
                 );
             }
             0x0000000c => {
-                println!("{:08x}: PMU Major Msg: End of LRDIMM Specific training (DWL, MREP, MRD and MWD)", train_data);
+                println!("{:02x}: PMU Major Msg: End of LRDIMM Specific training (DWL, MREP, MRD and MWD)", train_data);
             }
             0x0000000d => {
-                println!("{:08x}: PMU Major Msg: End of CA training", train_data);
+                println!("{:02x}: PMU Major Msg: End of CA training", train_data);
             }
             0x000000fd => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of MPR read delay center optimization",
+                    "{:02x}: PMU Major Msg: End of MPR read delay center optimization",
                     train_data
                 );
             }
             0x000000fe => {
                 println!(
-                    "{:08x}: PMU Major Msg: End of Write leveling coarse delay",
+                    "{:02x}: PMU Major Msg: End of Write leveling coarse delay",
                     train_data
                 );
             }
             0x000000ff => loop {
-                println!("{:08x}: PMU Major Msg: FATAL ERROR.", train_data);
-                riscv::asm::delay(100);
+                println!("{:02x}: PMU Major Msg: FATAL ERROR.", train_data);
+                riscv::asm::delay(800_000_000);
             },
             _ => {
                 println!(

@@ -24,7 +24,16 @@ macro_rules! println {
             writeln!(&mut $crate::Console, "").unwrap();
         }
     };
+}
 
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        {
+            use core::fmt::Write;
+            write!(&mut $crate::Console, $($arg)*).unwrap();
+        }
+    };
 }
 
 pub mod ddr_init;
@@ -183,7 +192,7 @@ unsafe extern "C" fn _early_init() {
     );
 
     // performance settings
-    if false {
+    if true {
         asm!(
             "
         la t0, 0x70013
@@ -248,33 +257,85 @@ impl core::fmt::Write for Console {
     }
 }
 
-#[no_mangle]
-unsafe extern "C" fn _start_rust() -> ! {
-    UART0.thr().write(|w| w.set_thr(0x42));
-    UART0.thr().write(|w| w.set_thr(0x42));
-    UART0.thr().write(|w| w.set_thr(0x42));
+unsafe fn spl_device_disable() {
+    let mut value: u32;
 
+    // disable ai power
+    if ptr::read_volatile(0x9110302c as *const u32) & 0x2 != 0 {
+        ptr::write_volatile(0x91103028 as *mut u32, 0x30001);
+    }
+
+    // disable vpu power
+    if ptr::read_volatile(0x91103080 as *const u32) & 0x2 != 0 {
+        ptr::write_volatile(0x9110307c as *mut u32, 0x30001);
+    }
+
+    // disable dpu power
+    if ptr::read_volatile(0x9110310c as *const u32) & 0x2 != 0 {
+        ptr::write_volatile(0x91103108 as *mut u32, 0x30001);
+    }
+
+    // disable disp power
+    if ptr::read_volatile(0x91103040 as *const u32) & 0x2 != 0 {
+        ptr::write_volatile(0x9110303c as *mut u32, 0x30001);
+    }
+
+    // check disable status
+    let mut value = 1000000;
+    while (!(ptr::read_volatile(0x9110302c as *const u32) & 0x1 != 0)
+        || !(ptr::read_volatile(0x91103080 as *const u32) & 0x1 != 0)
+        || !(ptr::read_volatile(0x9110310c as *const u32) & 0x1 != 0)
+        || !(ptr::read_volatile(0x91103040 as *const u32) & 0x1 != 0))
+        && value != 0
+    {
+        value -= 1;
+    }
+
+    // disable ai clk
+    value = ptr::read_volatile(0x91100008 as *const u32);
+    value &= !(1 << 0);
+    ptr::write_volatile(0x91100008 as *mut u32, value);
+
+    // disable vpu clk
+    value = ptr::read_volatile(0x9110000c as *const u32);
+    value &= !(1 << 0);
+    ptr::write_volatile(0x9110000c as *mut u32, value);
+
+    // disable dpu clk
+    value = ptr::read_volatile(0x91100070 as *const u32);
+    value &= !(1 << 0);
+    ptr::write_volatile(0x91100070 as *mut u32, value);
+
+    // disable mclk
+    value = ptr::read_volatile(0x9110006c as *const u32);
+    value &= !((1 << 0) | (1 << 1) | (1 << 2));
+    ptr::write_volatile(0x9110006c as *mut u32, value);
+}
+
+unsafe fn board_init() {
+    // UART init
+    // UART is inited by BootROM, so we just disable FIFO and interrupt
     UART0.ier().write(|w| w.0 = 0);
     UART0.fcr().write(|w| {
         w.set_fifoe(false);
         w.set_xfifor(true);
+        w.set_rfifor(true);
     });
 
-    let mut con = Console;
+    println!("\r\n");
+    println!("{}", BANNER);
+    println!("Booting K230 using Rust ....");
 
-    UART0.thr().write(|w| w.set_thr(0x41));
-    UART0.thr().write(|w| w.set_thr(0x41));
-    UART0.thr().write(|w| w.set_thr(0x41));
+    // spl_board_init_f
+    spl_device_disable();
+    ddr_init::ddr_init_training();
 
-    writeln!(con).unwrap();
+    println!("DDR init done!");
+}
 
-    writeln!(con, "{}", BANNER).unwrap();
-
-    writeln!(con, "Booting K230 using Rust ....").unwrap();
-
-    ddr_init::board_ddr_init();
-
-    writeln!(con, "DDR init done!").unwrap();
+#[no_mangle]
+unsafe extern "C" fn _start_rust() -> ! {
+    board_init();
 
     let mstatus = riscv::register::mstatus::read();
     println!("mstatus: {:016x}", mstatus.bits());
@@ -288,13 +349,13 @@ unsafe extern "C" fn _start_rust() -> ! {
     let misa = riscv::register::misa::read().unwrap();
 
     println!("misa: {:x}", misa.bits());
-    write!(con, "  RV64").unwrap();
+    print!("  RV64");
     for c in 'A'..='Z' {
         if misa.has_extension(c) {
-            write!(con, "{}", c).unwrap();
+            print!("{}", c);
         }
     }
-    writeln!(con).unwrap();
+    println!();
 
     let mvendorid = riscv::register::mvendorid::read().unwrap();
     println!("mvendorid: {:x}", mvendorid.bits());
@@ -318,18 +379,21 @@ unsafe extern "C" fn _start_rust() -> ! {
     println!("PLIC base: 0x{:016x}", mapbaddr);
 
     let r = pac::GPIO0.config_reg1().read();
-    println!(
-        "GPIO0 config_reg1: num_ports={} debounce={} PA_hw_ctl={} PA_single_ctl={}",
-        r.num_ports() + 1,
-        r.debounce(),
-        r.hw_port(0),
-        r.port_single_ctl(0)
-    );
+    println!("GPIO0 config_reg1: num_ports={}", r.num_ports() + 1,);
     let r = pac::GPIO0.config_reg2().read();
-    println!("GPIO0 config_reg2: len(PA)={}", r.encoded_id_pwidth(0) + 1,);
-
-    let r = pac::GPIO0.ver_id_code().read();
-    println!("GPIO0 ver id=0x{:08x}", r);
+    println!(
+        "GPIO0 config_reg2: len(PA)={} len(PB)={}",
+        r.encoded_id_pwidth(0) + 1,
+        r.encoded_id_pwidth(1) + 1
+    );
+    let r = pac::GPIO1.config_reg1().read();
+    println!("GPIO1 config_reg1: num_ports={}", r.num_ports() + 1,);
+    let r = pac::GPIO1.config_reg2().read();
+    println!(
+        "GPIO1 config_reg2: len(PA)={} len(PB)={}",
+        r.encoded_id_pwidth(0) + 1,
+        r.encoded_id_pwidth(1) + 1
+    );
 
     let mut delay = riscv::delay::McycleDelay::new(CPU0_CORE_CLK);
 
