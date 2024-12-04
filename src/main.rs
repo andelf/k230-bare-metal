@@ -335,7 +335,10 @@ unsafe fn board_init() {
 }
 
 fn blinky() {
-    // target LED, GOIO20
+    // RGB LED of LCKFB
+    // - R: GPIO62
+    // - G: GPIO20
+    // - B: GPIO63
     use pac::{GPIO0, GPIO1, IOMUX};
 
     IOMUX.pad(20).modify(|w| w.set_sel(0));
@@ -359,6 +362,56 @@ fn blinky() {
         println!("dr =  {:08x}", GPIO0.swport(0).dr().read());
         println!("ddr = {:08x}", GPIO0.swport(0).ddr().read());
     }
+}
+
+fn buzzer() {
+    // GPIO43 - PWM1
+    use pac::{IOMUX, PWM0};
+
+    // PCLK, PWM use APB clock to program registers as well as to generate waveforms. The default frequency is 100MHz.
+    // const PWM_CLOCK_IN: u32 = 100_000_000;
+
+    IOMUX.pad(43).modify(|w| {
+        w.set_sel(2); // PWM = 2
+        w.set_oe(true);
+        w.set_ds(7);
+    });
+
+    // Calc:
+    // scale = 2
+    // period = 0x5000
+    // duty = period / 2 = 0x2800
+    // 100_000_000 / (1 << 2) / 0x5000
+    // duty = 0x5000 / 2
+
+    PWM0.pwmcfg().modify(|w| {
+        w.set_zerocomp(true);
+        w.set_scale(2);
+    });
+
+    // CMP_max = 0xFFFF. 64bit
+    PWM0.pwmcmp(0).write(|w| w.0 = 0x5000);
+    let duty = 0x2800;
+
+    PWM0.pwmcmp(2).modify(|w| w.0 = duty);
+
+    // enable
+    PWM0.pwmcfg().modify(|w| w.set_enalways(true));
+    riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(100);
+
+    PWM0.pwmcfg().modify(|w| w.set_enalways(false));
+    riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(100);
+
+    PWM0.pwmcfg().modify(|w| w.set_enalways(true));
+    riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(100);
+
+    PWM0.pwmcfg().modify(|w| w.set_enalways(false));
+    riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(100);
+
+    PWM0.pwmcfg().modify(|w| w.set_enalways(true));
+    riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(100);
+
+    PWM0.pwmcfg().modify(|w| w.set_enalways(false));
 }
 
 #[no_mangle]
@@ -424,6 +477,8 @@ unsafe extern "C" fn _start_rust() -> ! {
     );
 
     let mut delay = riscv::delay::McycleDelay::new(CPU0_CORE_CLK);
+
+    buzzer();
 
     blinky();
 

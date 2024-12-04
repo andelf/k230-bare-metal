@@ -13,7 +13,7 @@ fieldset/CTRL:
   description: SWPORT abstraction.
   fields:
     - name: SEL
-      description: IO Function Select
+      description: IO Function Select, func_no - 1
       bit_offset: 11
       bit_size: 5
 

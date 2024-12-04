@@ -1,0 +1,98 @@
+block/PWM:
+  description: |
+    PWM. kendryte,pwm. The PWM consists of 4 channels. 0,1,2,3, among which 4 channels are bound
+    (the number of clock cycles in which the output pulse repeats is the same), 0 channel outputs 1 narrow pulse of clock cycle width,
+    and the output pulse width of 1, 2, 3 channels is adjustable (adjustable duty ratio). We use channels 1,2,3 channels.
+  items:
+    - name: PWMCFG
+      description: PWM configuration register
+      byte_offset: 0x00
+      bit_size: 32
+      fieldset: PWMCFG
+    - name: PWMCOUNT
+      description: PWM counter count value register
+      byte_offset: 0x08
+      bit_size: 32
+      fieldset: PWMCOUNT
+    - name: PWMS
+      description: PWM counter relatively straight register
+      byte_offset: 0x10
+      bit_size: 32
+      fieldset: PWMS
+    - name: PWMCMP
+      description: PWM comparator registers
+      byte_offset: 0x20
+      bit_size: 32
+      array:
+        len: 4
+        stride: 4
+      fieldset: PWMCMP
+fieldset/PWMCFG:
+  description: PWM Configuration Register Fields
+  fields:
+    - name: ip
+      description: The interrupt pending bits pwmcmp0ip. Changed at the start of the next PWM cycle.
+      bit_offset: 28
+      bit_size: 1
+      array:
+        len: 4
+        stride: 1
+    - name: gang
+      description: Comparator 0 gang mode. When set, comparator 0 fires and raises pwm0gpio signal.
+      bit_offset: 24
+      bit_size: 1
+      array:
+        len: 4
+        stride: 1
+    - name: center
+      description: Per-comparator pwmcmp0center bit to generate center-aligned symmetric duty-cycle
+      bit_offset: 16
+      bit_size: 1
+      array:
+        len: 4
+        stride: 1
+    - name: enoneshot
+      description: Controls one-shot PWM counter operation. Counter increments once and stops when enabled.
+      bit_offset: 13
+      bit_size: 1
+    - name: enalways
+      description: Controls continuous PWM counter operation. Counter increments continuously when set.
+      bit_offset: 12
+      bit_size: 1
+    - name: deglitch
+      description: Controls glitch prevention in PWM waveforms when changing pwmcmpX values
+      bit_offset: 10
+      bit_size: 1
+    - name: zerocomp
+      description: Controls automatic counter reset when pwms matches pwmcmp0
+      bit_offset: 9
+      bit_size: 1
+    - name: sticky
+      description: Controls clearing of pwmcmpXip interrupt pending bits
+      bit_offset: 8
+      bit_size: 1
+    - name: scale
+      description: 4-bit field to scale PWM counter value before comparator input
+      bit_offset: 0
+      bit_size: 4
+fieldset/PWMCOUNT:
+  description: PWM Counter Count Value Register Fields. The pwmcount register is (15 + cmpwidth) bits wide
+  fields:
+    - name: cnt
+      description: PWM counter count value
+      bit_offset: 0
+      bit_size: 31
+fieldset/PWMS:
+  description: PWM Counter Relatively Straight Register Fields
+  fields:
+    - name: pwms
+      description: The value of pwms is memory-mapped and can be read as a single cmpwidth-bit value over the bus
+      bit_offset: 0
+      bit_size: 16
+fieldset/PWMCMP:
+  description: PWM Comparator Registers Fields
+  fields:
+    - name: CMP
+      description: PWM comparator value
+      bit_offset: 0
+      bit_size: 16

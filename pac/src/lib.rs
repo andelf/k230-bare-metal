@@ -23,6 +23,9 @@ pub mod uart;
 #[path = "iomux_v0.rs"]
 pub mod iomux;
 
+#[path = "pwm_v0.rs"]
+pub mod pwm;
+
 pub const PLIC_BASE: usize = 0x0000000_f00000000;
 
 pub const PLIC: plic::Plic = unsafe { plic::Plic::from_ptr((PLIC_BASE) as *mut ()) };
@@ -49,3 +52,7 @@ pub const UART1: uart::Uart = unsafe { uart::Uart::from_ptr(0x9140_1000 as *mut 
 pub const UART2: uart::Uart = unsafe { uart::Uart::from_ptr(0x9140_2000 as *mut ()) };
 pub const UART3: uart::Uart = unsafe { uart::Uart::from_ptr(0x9140_3000 as *mut ()) };
 pub const UART4: uart::Uart = unsafe { uart::Uart::from_ptr(0x9140_4000 as *mut ()) };
+
+// PWM0 and PWM are selected by the paddr[6] bit
+pub const PWM0: pwm::Pwm = unsafe { pwm::Pwm::from_ptr(0x9140_A000 as *mut ()) };
+pub const PWM1: pwm::Pwm = unsafe { pwm::Pwm::from_ptr(0x9140_A040 as *mut ()) };
