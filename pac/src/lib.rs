@@ -1,5 +1,6 @@
 #![no_std]
-#[allow(non_camel_case_types)]
+#![allow(non_camel_case_types)]
+
 pub mod common;
 
 pub mod clint;
@@ -25,6 +26,9 @@ pub mod iomux;
 
 #[path = "pwm_v0.rs"]
 pub mod pwm;
+
+#[path = "tsensor_v0.rs"]
+pub mod tsensor;
 
 pub const PLIC_BASE: usize = 0x0000000_f00000000;
 
@@ -56,3 +60,5 @@ pub const UART4: uart::Uart = unsafe { uart::Uart::from_ptr(0x9140_4000 as *mut 
 // PWM0 and PWM are selected by the paddr[6] bit
 pub const PWM0: pwm::Pwm = unsafe { pwm::Pwm::from_ptr(0x9140_A000 as *mut ()) };
 pub const PWM1: pwm::Pwm = unsafe { pwm::Pwm::from_ptr(0x9140_A040 as *mut ()) };
+
+pub const TSENSOR: tsensor::Tsensor = unsafe { tsensor::Tsensor::from_ptr(0x9110_7000 as *mut ()) };

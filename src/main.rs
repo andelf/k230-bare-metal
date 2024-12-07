@@ -2,7 +2,6 @@
 #![no_main]
 #![feature(abi_riscv_interrupt)]
 
-use core::fmt::{self, Write as _};
 use core::{
     arch::{asm, global_asm},
     ptr,
@@ -36,8 +35,10 @@ macro_rules! print {
     };
 }
 
+pub mod commands;
 #[allow(unused)]
 pub mod ddr_init;
+pub mod readline;
 
 // 2-7 clock frequency
 pub const OSC24M: u32 = 24_000_000;
@@ -243,10 +244,11 @@ unsafe extern "C" fn _early_init() {
 // ASCII art of "Rust"
 const BANNER: &str = include_str!("BANNER");
 
+#[derive(Debug)]
 pub struct Console;
 
 impl core::fmt::Write for Console {
-    fn write_str(&mut self, s: &str) -> fmt::Result {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for c in s.as_bytes() {
             unsafe {
                 while !UART0.lsr().read().thre() {
@@ -355,6 +357,18 @@ unsafe fn board_init() {
     println!("DDR init done!");
 }
 
+fn tsensor_init() {
+    use pac::TSENSOR;
+
+    TSENSOR.tsen_w().write(|w| {
+        w.set_ts_conv_mode(true); // continuous mode
+        w.set_ts_test_en(true);
+    });
+    TSENSOR.tsen_w().modify(|w| {
+        w.set_ts_en(true);
+    });
+}
+
 fn blinky() {
     // RGB LED of LCKFB
     // - R: GPIO62
@@ -444,67 +458,38 @@ fn beep() {
     PWM0.pwmcfg().modify(|w| w.set_enalways(false));
 }
 
-fn readline(buf: &mut [u8]) -> usize {
-    static mut SKIP: u8 = 0;
-    let mut ptr: usize = 0;
-
-    loop {
-        let c = getchar();
-
-        // Check skip character
-        unsafe {
-            if c == SKIP {
-                continue;
-            }
-            SKIP = 0;
-        }
-
-        match c {
-            0x7f | 0x08 => {
-                if ptr > 0 {
-                    ptr -= 1;
-                    print!("\x08 \x08"); // backspace
-                }
-            }
-            0x07 => {}
-            b'\r' => {
-                unsafe {
-                    SKIP = b'\n';
-                }
-                buf[ptr] = 0;
-                putc(b'\n');
-                return 0;
-            }
-            b'\n' => {
-                unsafe {
-                    SKIP = b'\r';
-                }
-                buf[ptr] = 0;
-                putc(b'\n');
-                return 0;
-            }
-            _ => {
-                if ptr < buf.len() - 1 {
-                    putc(c);
-                    buf[ptr] = c;
-                    ptr += 1;
-                }
-            }
-        }
-    }
-}
-
 fn shell_repl() {
-    let mut buf = [0u8; 1024];
+    use noline::builder::EditorBuilder;
+    use noline::error::NolineError;
 
+    let mut buffer = [0; 1024];
+    let mut history = [0; 1024];
+    // noline doesn't support color prompt
+    // const PROPMT: &str = "\x1b[32;1mK230\x1b[0m> ";
+    const PROPMT: &str = "K230> ";
+
+    let mut editor = EditorBuilder::from_slice(&mut buffer)
+        .with_slice_history(&mut history)
+        .build_sync(&mut Console)
+        .unwrap();
     loop {
-        print!("\x1b[32;1mK230\x1b[0m> ");
-
-        let nread = readline(&mut buf);
-        beep();
-
-        if nread > 0 {
-            println!("in: {:?}", core::str::from_utf8(&buf[..nread]).unwrap());
+        match editor.readline(PROPMT, &mut Console) {
+            Ok(s) => {
+                if s.len() > 0 {
+                    beep();
+                    commands::handle_command_line(s);
+                } else {
+                    println!("");
+                }
+            }
+            Err(err) => {
+                let error = match err {
+                    NolineError::IoError(_) => "IoError",
+                    NolineError::ParserError => "ParserError",
+                    NolineError::Aborted => "Aborted",
+                };
+                println!("Error: {}\r", error);
+            }
         }
     }
 }
@@ -513,41 +498,7 @@ fn shell_repl() {
 unsafe extern "C" fn _start_rust() -> ! {
     board_init();
 
-    let mstatus = riscv::register::mstatus::read();
-    println!("mstatus: {:016x}", mstatus.bits());
-
-    let mie = riscv::register::mie::read();
-    println!("mie: {:016x}", mie.bits());
-
-    let mip = riscv::register::mip::read();
-    println!("mip: {:016x}", mip.bits());
-
-    let misa = riscv::register::misa::read().unwrap();
-
-    println!("misa: {:x}", misa.bits());
-    print!("  RV64");
-    for c in 'A'..='Z' {
-        if misa.has_extension(c) {
-            print!("{}", c);
-        }
-    }
-    println!();
-
-    let mvendorid = riscv::register::mvendorid::read().unwrap();
-    println!("mvendorid: {:x}", mvendorid.bits());
-
-    let marchid = riscv::register::marchid::read().unwrap();
-    println!("marchid: {:x}", marchid.bits());
-
-    let mut cpuid0: u64;
-    let mut cpuid1: u64;
-    let mut cpuid2: u64;
-    asm!("
-        csrr {0}, 0xfc0
-        csrr {1}, 0xfc0
-        csrr {2}, 0xfc0
-    ", out(reg) cpuid0, out(reg) cpuid1, out(reg) cpuid2);
-    println!("cpuid: {:08x} {:08x} {:08x}", cpuid0, cpuid1, cpuid2);
+    commands::cpuid();
 
     // read csr 0xfc1 mapbaddr, p
     let mut mapbaddr: u64;
@@ -573,6 +524,7 @@ unsafe extern "C" fn _start_rust() -> ! {
 
     let mut delay = riscv::delay::McycleDelay::new(CPU0_CORE_CLK);
 
+    tsensor_init();
     buzzer();
 
     // blinky();
@@ -602,6 +554,10 @@ unsafe extern "C" fn _start_rust() -> ! {
 
 #[panic_handler]
 unsafe fn panic(_info: &core::panic::PanicInfo) -> ! {
+    println!("PANIC: {}", _info);
+
+    riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(1000);
+
     asm!(
         "
         la x31, 0x1f

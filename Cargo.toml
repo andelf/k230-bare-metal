@@ -8,5 +8,7 @@ edition = "2021"
 
 [dependencies]
 embedded-hal = "1.0.0"
+embedded-io = "0.6.1"
+noline = "0.5.0"
 pac = { path = "./pac" }
 riscv = "0.12.1"
