@@ -4,7 +4,43 @@ block/TSENSOR:
     - name: TSenW
       description: TSensor IP Configuration Register
       byte_offset: 0
+      fieldset: TSenW
     - name: TSenR
       description: Read retured value of TSensor IP Register
       byte_offset: 4
       access: Read
+      fieldset: TSenR
+fieldset/TSenW:
+  description: Temperature Sensor Control Register
+  fields:
+    - name: ts_test_en
+      description: Internal Reference Voltage test enable, active high
+      bit_offset: 6
+      bit_size: 1
+
+    - name: ts_trim
+      description: TSensor Reference Voltage calibration
+      bit_offset: 2
+      bit_size: 4
+
+    - name: ts_conv_mode
+      description: TSensor Output mode selection. 0:Single output mode 1:Continuous output mode
+      bit_offset: 1
+      bit_size: 1
+
+    - name: ts_en
+      description: TSensor enable, active high
+      bit_offset: 0
+      bit_size: 1
+fieldset/TSenR:
+  description: Temperature Sensor Read Register
+  fields:
+    - name: ts_dout_valid
+      description: ts_dout is valid when high
+      bit_offset: 12
+      bit_size: 1
+
+    - name: ts_dout
+      description: TSensor data out
+      bit_offset: 0
+      bit_size: 12
