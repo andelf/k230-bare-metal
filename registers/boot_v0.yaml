@@ -87,8 +87,19 @@ block/BOOT:
     - name: PLL3_STAT
       description: pll3 status
       byte_offset: 0x3c
-
-
+    # See-also: src/rtsmart/rtsmart/kernel/bsp/maix3/drivers/interdrv/sysctl/sysctl_boot/sysctl_boot.h
+    - name: SOC_BOOT_CTL
+      description: soc boot control
+      byte_offset: 0x40
+    - name: SOC_GLB_RST
+      description: soc global reset
+      byte_offset: 0x60
+    - name: SOC_RST_TIM
+      description: soc reset time
+      byte_offset: 0x64
+    - name: SOC_SLEEP_TIM
+      description: soc sleep time
+      byte_offset: 0x68
     # By guess
     - name: CORE_RUN_ADDR
       description: Core run address

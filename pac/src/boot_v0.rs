@@ -99,6 +99,26 @@ impl Boot {
     pub const fn pll3_stat(self) -> crate::common::Reg<u32, crate::common::RW> {
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x3cusize) as _) }
     }
+    #[doc = "soc boot control"]
+    #[inline(always)]
+    pub const fn soc_boot_ctl(self) -> crate::common::Reg<u32, crate::common::RW> {
+        unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x40usize) as _) }
+    }
+    #[doc = "soc global reset"]
+    #[inline(always)]
+    pub const fn soc_glb_rst(self) -> crate::common::Reg<u32, crate::common::RW> {
+        unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x60usize) as _) }
+    }
+    #[doc = "soc reset time"]
+    #[inline(always)]
+    pub const fn soc_rst_tim(self) -> crate::common::Reg<u32, crate::common::RW> {
+        unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x64usize) as _) }
+    }
+    #[doc = "soc sleep time"]
+    #[inline(always)]
+    pub const fn soc_sleep_tim(self) -> crate::common::Reg<u32, crate::common::RW> {
+        unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x68usize) as _) }
+    }
     #[doc = "soc power control"]
     #[inline(always)]
     pub const fn soc_sleep_ctl(self) -> crate::common::Reg<u32, crate::common::RW> {
