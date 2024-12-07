@@ -36,6 +36,7 @@ macro_rules! print {
     };
 }
 
+#[allow(unused)]
 pub mod ddr_init;
 
 // 2-7 clock frequency
@@ -260,6 +261,26 @@ impl core::fmt::Write for Console {
     }
 }
 
+pub fn getchar() -> u8 {
+    unsafe {
+        while !UART0.lsr().read().dr() {
+            asm!("nop");
+        }
+
+        UART0.rbr().read().rbr()
+    }
+}
+
+pub fn putc(c: u8) {
+    unsafe {
+        while !UART0.lsr().read().thre() {
+            asm!("nop");
+        }
+
+        UART0.thr().write(|w| w.set_thr(c));
+    }
+}
+
 unsafe fn spl_device_disable() {
     // disable ai power
     if ptr::read_volatile(0x9110302c as *const u32) & 0x2 != 0 {
@@ -414,6 +435,80 @@ fn buzzer() {
     PWM0.pwmcfg().modify(|w| w.set_enalways(false));
 }
 
+// require buzzer init
+fn beep() {
+    use pac::PWM0;
+    PWM0.pwmcfg().modify(|w| w.set_enalways(true));
+    riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(50);
+
+    PWM0.pwmcfg().modify(|w| w.set_enalways(false));
+}
+
+fn readline(buf: &mut [u8]) -> usize {
+    static mut SKIP: u8 = 0;
+    let mut ptr: usize = 0;
+
+    loop {
+        let c = getchar();
+
+        // Check skip character
+        unsafe {
+            if c == SKIP {
+                continue;
+            }
+            SKIP = 0;
+        }
+
+        match c {
+            0x7f | 0x08 => {
+                if ptr > 0 {
+                    ptr -= 1;
+                    print!("\x08 \x08"); // backspace
+                }
+            }
+            0x07 => {}
+            b'\r' => {
+                unsafe {
+                    SKIP = b'\n';
+                }
+                buf[ptr] = 0;
+                putc(b'\n');
+                return 0;
+            }
+            b'\n' => {
+                unsafe {
+                    SKIP = b'\r';
+                }
+                buf[ptr] = 0;
+                putc(b'\n');
+                return 0;
+            }
+            _ => {
+                if ptr < buf.len() - 1 {
+                    putc(c);
+                    buf[ptr] = c;
+                    ptr += 1;
+                }
+            }
+        }
+    }
+}
+
+fn shell_repl() {
+    let mut buf = [0u8; 1024];
+
+    loop {
+        print!("\x1b[32;1mK230\x1b[0m> ");
+
+        let nread = readline(&mut buf);
+        beep();
+
+        if nread > 0 {
+            println!("in: {:?}", core::str::from_utf8(&buf[..nread]).unwrap());
+        }
+    }
+}
+
 #[no_mangle]
 unsafe extern "C" fn _start_rust() -> ! {
     board_init();
@@ -480,7 +575,9 @@ unsafe extern "C" fn _start_rust() -> ! {
 
     buzzer();
 
-    blinky();
+    // blinky();
+
+    shell_repl();
 
     loop {
         // delay.delay_ms(1000); panic!("fuck"); // - test trap
