@@ -1,4 +1,4 @@
-use core::arch::asm;
+use core::{arch::asm, ptr};
 
 pub fn handle_command_line(line: &str) {
     // println!("DEBUG: {:?}", line);
@@ -17,6 +17,30 @@ pub fn handle_command_line(line: &str) {
             println!("  mem_write <address> <u32> - write memory");
             println!("  tsensor - read temperature sensor");
             println!("  cpuid - print CPUID");
+            println!("  serialboot - enter serial boot mode");
+        }
+        Some("jump") => {
+            let jump_addr = it.next().and_then(parse_number).unwrap_or(0x0100_0000);
+
+            println!("Jump to 0x{:08x}", jump_addr);
+            unsafe {
+                core::arch::asm!(
+                    "jr {0}",
+                    in(reg) jump_addr,
+                    options(noreturn)
+                );
+            }
+        }
+        Some("jumpbig") => {
+            let jump_addr = it.next().and_then(parse_number).unwrap_or(0x0100_0000);
+
+            println!("Jump to 0x{:08x} with CPU1", jump_addr);
+            unsafe {
+                ptr::write_volatile(0x91102104 as *mut u32, jump_addr as u32);
+                ptr::write_volatile(0x9110100c as *mut u32, 0x10001000);
+                ptr::write_volatile(0x9110100c as *mut u32, 0x10001);
+                ptr::write_volatile(0x9110100c as *mut u32, 0x10000);
+            }
         }
         Some("echo") => {
             for word in it {
@@ -44,6 +68,9 @@ pub fn handle_command_line(line: &str) {
                 break;
             }
         },
+        Some("serialboot") => {
+            crate::boot::litex_term_serial_boot();
+        }
         Some("mem_read") => {
             let address = it.next();
             let length = it.next();
@@ -75,7 +102,7 @@ pub fn handle_command_line(line: &str) {
                         let aligned_address = address & !0xf;
                         let offset = (address - aligned_address) / 4;
 
-                        print!("\n{:08x}  | ", ptr as u32);
+                        print!("\n{:08x}  | ", ptr as u64);
                         for _ in 0..offset {
                             print!("         ");
                         }
@@ -107,7 +134,7 @@ pub fn handle_command_line(line: &str) {
                 (Some(address), Some(value)) => {
                     println!("Write 0x{:08x} to 0x{:08x}", value, address);
                     let ptr = address as *mut u32;
-                    unsafe { ptr.write_volatile(value) };
+                    unsafe { ptr.write_volatile(value as u32) };
                 }
                 _ => {
                     println!("mem_write <address> <u32>");
@@ -123,11 +150,11 @@ pub fn handle_command_line(line: &str) {
     }
 }
 
-pub fn parse_number(s: &str) -> Option<u32> {
+pub fn parse_number(s: &str) -> Option<u64> {
     if s.starts_with("0x") || s.starts_with("0X") {
-        u32::from_str_radix(&s[2..], 16).ok()
+        u64::from_str_radix(&s[2..], 16).ok()
     } else if s.starts_with("0b") || s.starts_with("0B") {
-        u32::from_str_radix(&s[2..], 2).ok()
+        u64::from_str_radix(&s[2..], 2).ok()
     } else {
         s.parse().ok()
     }
@@ -159,6 +186,9 @@ pub fn cpuid() {
 
     let marchid = riscv::register::marchid::read().unwrap();
     println!("marchid: {:x}", marchid.bits());
+
+    let mhartid = riscv::register::mhartid::read();
+    println!("mhartid: {:x}", mhartid);
 
     let mut cpuid0: u64;
     let mut cpuid1: u64;

@@ -23,6 +23,12 @@ impl embedded_io::Read for Console {
     }
 }
 
+impl embedded_io::ReadReady for Console {
+    fn read_ready(&mut self) -> Result<bool, Self::Error> {
+        Ok(UART0.lsr().read().dr())
+    }
+}
+
 impl embedded_io::Write for Console {
     fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
         for &c in buf {
