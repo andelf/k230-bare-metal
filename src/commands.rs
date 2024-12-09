@@ -64,7 +64,8 @@ pub fn handle_command_line(line: &str) {
             let r = pac::TSENSOR.tsen_r().read();
             if r.ts_dout_valid() {
                 let temp = r.ts_dout();
-                println!("Temperature Sensor: {}", temp);
+                println!("Sensor Raw: {}", temp);
+                println!("Temperature: {:.2}°C", tsensor_calculate_temperature(temp));
                 break;
             }
         },
@@ -201,4 +202,12 @@ pub fn cpuid() {
     ", out(reg) cpuid0, out(reg) cpuid1, out(reg) cpuid2);
     }
     println!("cpuid: {:08x} {:08x} {:08x}", cpuid0, cpuid1, cpuid2);
+}
+
+fn tsensor_calculate_temperature(data: u16) -> f64 {
+    use num_traits::float::FloatCore;
+    let data = data as f64;
+    1e-10 * data.powi(4) * 1.01472 - 1e-6 * data.powi(3) * 1.10063 + 4.36150e-3 * data.powi(2)
+        - 7.10128 * data
+        + 3565.87
 }
