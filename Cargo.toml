@@ -1,5 +1,6 @@
 [workspace]
 members = ["pac"]
+exclude = ["app"]
 
 [package]
 name = "k230-bare-metal"
@@ -9,6 +10,8 @@ edition = "2021"
 [dependencies]
 embedded-hal = "1.0.0"
 embedded-io = "0.6.1"
+micromath = "2.1.0"
 noline = "0.5.0"
+num-traits = { version = "0.2.19", default-features = false }
 pac = { path = "./pac" }
 riscv = "0.12.1"

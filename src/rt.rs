@@ -136,7 +136,7 @@ unsafe extern "C" fn _early_init() {
     );
 
     // performance settings
-    if true {
+    if false {
         asm!(
             "
         la t0, 0x70013
