@@ -12,10 +12,50 @@ Note: This is a preliminary research project. All findings and documentation are
 
 Boards:
 
-- CanMV-K230 V1P0
 - CanMV-LCKFB
+- CanMV-K230 V1P0 - modify `src/ddr_init/mod.rs` for different DDR configurations
 
-## Boot Log on UART0
+## Usage
+
+Generate TF card image:
+
+```console
+cargo objcopy --release -- -O binary firmware.bin && python genimage.py
+```
+
+Then flash `firmware.img` to a TF card.
+
+Now you can boot the K230 board with the TF card. A simple command line interface is available on UART0.
+
+Generate CPU1 (big-core) firmware image:
+
+```console
+> ./gen-big-core-app.sh
++ cargo objcopy -p app --release -- -O binary big-core.bin
+    Finished `release` profile [optimized] target(s) in 0.04s
++ ls -lah big-core.bin
+-rwxr-xr-x  1 mono  staff    17K Dec 10 18:46 big-core.bin
+```
+
+Install [LiteX](https://github.com/enjoy-digital/litex) toolset (`litex_term`). Then run:
+
+```console
+> litex_term /dev/tty.usbmodem56C40035621 --kernel-adr 0x01000000 --kernel ./big-core.bin
+.... (booting log)
+Press Q or ESC to abort boot completely.
+sL5DdSMmkekro
+[LITEX-TERM] Received firmware download request from the device.
+[LITEX-TERM] Uploading ./big-core.bin to 0x01000000 (17400 bytes)...
+[LITEX-TERM] Upload calibration... (inter-frame: 640.00us, length: 64)
+[LITEX-TERM] Upload complete (9.9KB/s).
+[LITEX-TERM] Booting the device.
+[LITEX-TERM] Done.
+Jumping to 0x01000000...
+
+K230> jumpbig
+```
+
+### Boot Log on UART0
 
 ```text
  _  __              _            _
@@ -43,6 +83,7 @@ misa: 800000000094112f
 mcycle: 1177686900
 ```
 
+
 ## Firmware Image Format
 
 ### For TF Card
@@ -65,48 +106,6 @@ mcycle: 1177686900
 ```
 
 Firmware is loaded to 0x80300000, not 0x80200000. 0x80200000 to 0x802fffff is reserved for the bootloader(BootRom).
-
-In `board_common.h`:
-
-```c
-#define K230_IMAGE_MAGIC_NUM 0x3033324B // "K230"
-
-typedef enum {
-  NONE_SECURITY = 0,
-  GCM_ONLY,
-  CHINESE_SECURITY,
-  INTERNATIONAL_SECURITY
-} crypto_type_e;
-
-typedef struct __firmware_head_st {
-  uint32_t magic;  // 方便升级时快速判断固件是否有效。
-  uint32_t length; // 从存储介质读到SRAM的数据量
-  crypto_type_e
-      crypto_type; // 支持国密或国际加密算法，或支持不加密启动(otp可以控制是否支持)。
-  // 设想这样一个场景，如果固件只使用对称加密，在工厂批量生产的时候，解密密钥必然会泄露给工厂。如果使用非对称加密就可以这种问题了，只需要把公钥交给工厂。
-  union verify_ {
-    struct rsa_ {
-      uint8_t n
-          [256]; // 非对称加密的验签，防止固件被篡改。同时其HASH值会被烧录到otp。
-      uint32_t e;
-      uint8_t signature[256];
-    } rsa;
-    struct sm2_ {
-      uint32_t idlen;
-      uint8_t id[512 - 32 * 4];
-      uint8_t pukx[32];
-      uint8_t puky[32];
-      uint8_t r[32];
-      uint8_t s[32];
-    } sm2;
-    struct none_sec_ {
-      uint8_t signature
-          [32]; // 计算HASH保证启动固件的完整性。避免程序异常难以定位原因。
-      uint8_t reserved[516 - 32];
-    } none_sec;
-  } verify;
-} __attribute__((packed, aligned(4))) firmware_head_s; //总的512+16 bytes
-```
 
 ## About K230
 
