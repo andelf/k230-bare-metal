@@ -1,6 +1,5 @@
 [workspace]
-members = ["pac"]
-exclude = ["app"]
+members = ["pac", "app"]
 
 [package]
 name = "k230-bare-metal"

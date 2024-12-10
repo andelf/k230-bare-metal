@@ -1,5 +1,11 @@
+/*
+0x0000_0000 ~ 0x8000_0000 DDR,  2GB
+0x8020_0000	~ 0x8040_0000 SRAM, 2MB
+*/
+
 MEMORY { .spl_mem : ORIGIN = 0x80300000, LENGTH = 0x80000 }
 MEMORY { .bss_mem : ORIGIN = 0x80380000, LENGTH = 0x20000 }
+
 OUTPUT_ARCH("riscv")
 
 PROVIDE(__stack_start__ = ORIGIN(.bss_mem) + LENGTH(.bss_mem));
