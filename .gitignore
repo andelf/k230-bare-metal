@@ -2,5 +2,9 @@
 
 *.img
 trash/
+tmp/
 Cargo.lock
 *.bin
+
+*.asm
+
