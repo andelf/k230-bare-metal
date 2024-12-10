@@ -37,6 +37,8 @@ _start:
     la t1, __stack_start__
     addi sp, t1, -16
 
+    call __pre_init
+
     la t0, _start_trap_rust
     csrw mtvec, t0
     csrw mie, zero
@@ -64,13 +66,6 @@ hart1:
 cfg_global_asm!(
     ".weak __pre_init
 __pre_init:
-    ret",
-    ".weak _mp_hook
-_mp_hook:
-    beqz a0, 2f // if hartid is 0, return true
-1:  wfi // Otherwise, wait for interrupt in a loop
-    j 1b
-2:  li a0, 1
     ret",
 );
 
