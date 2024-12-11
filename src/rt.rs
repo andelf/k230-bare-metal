@@ -169,7 +169,6 @@ unsafe extern "C" fn _early_init() {
         mcounteren::set_tm(); // and time counter
 
         // FPU init
-        mstatus::set_fs(mstatus::FS::Clean);
         mstatus::set_fs(mstatus::FS::Initial);
         asm!("csrwi fcsr, 0");
     }
