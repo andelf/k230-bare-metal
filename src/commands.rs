@@ -1,8 +1,6 @@
 use core::{arch::asm, ptr};
 
 pub fn handle_command_line(line: &str) {
-    // println!("DEBUG: {:?}", line);
-
     let mut it = line.split_whitespace();
 
     let first = it.next();
@@ -18,6 +16,8 @@ pub fn handle_command_line(line: &str) {
             println!("  tsensor - read temperature sensor");
             println!("  cpuid - print CPUID");
             println!("  serialboot - enter serial boot mode");
+            println!("  jump <address> - jump to address");
+            println!("  jumpbig <address> - jump to address with CPU1, and set CPU0 to wfi state");
         }
         Some("jump") => {
             let jump_addr = it.next().and_then(parse_number).unwrap_or(0x0100_0000);
@@ -40,6 +40,10 @@ pub fn handle_command_line(line: &str) {
                 ptr::write_volatile(0x9110100c as *mut u32, 0x10001000);
                 ptr::write_volatile(0x9110100c as *mut u32, 0x10001);
                 ptr::write_volatile(0x9110100c as *mut u32, 0x10000);
+            }
+
+            loop {
+                unsafe { asm!("wfi") };
             }
         }
         Some("echo") => {
