@@ -301,7 +301,7 @@ pub const RUA_CPU_FEATURES: &[(&str, unsafe fn())] = &[
     ("a", inst_a),
     ("f", inst_f),
     ("d", inst_d),
-    ("d", inst_c),
+    ("c", inst_c),
     ("zba", inst_zba),
     ("zbb", inst_zbb),
     ("zbc", inst_zbc),

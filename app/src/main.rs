@@ -373,7 +373,6 @@ unsafe fn rvv_demo3() {
     let mut batch = 0;
     asm!(
         "
-
 1:
         vsetvli t1, a0, e32, m8, ta, ma
         slli t2, t1, 2 // multiply # elements this iteration by 4 bytes/source element
