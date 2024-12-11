@@ -8,6 +8,34 @@ use core::ptr;
 use embedded_hal::delay::DelayNs;
 use pac::UART0;
 
+#[macro_export]
+macro_rules! println {
+    ($($arg:tt)*) => {
+        {
+            use core::fmt::Write;
+            writeln!(&mut $crate::Console, $($arg)*).unwrap();
+        }
+    };
+    () => {
+        {
+            use core::fmt::Write;
+            writeln!(&mut $crate::Console, "").unwrap();
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        {
+            use core::fmt::Write;
+            write!(&mut $crate::Console, $($arg)*).unwrap();
+        }
+    };
+}
+
+pub mod ruacpu;
+
 global_asm!(
     // no "c" here, the same as riscv-rt
     ".attribute arch, \"rv64im\"",
@@ -84,14 +112,31 @@ _start:
 unsafe extern "riscv-interrupt-m" fn _start_trap_rust() {
     // riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(1000);
 
+    let mepc = riscv::register::mepc::read();
+    let mtval = riscv::register::mtval::read();
+
+    let mcause = riscv::register::mcause::read();
+
+    if mcause.is_exception() && mcause.code() == 2 {
+        // Illegal instruction
+        ruacpu::FAULT_FLAG = true;
+
+        if mtval & 0b11 != 0x11 {
+            // C extension
+            riscv::register::mepc::write(mepc + 4); // skip 2 C opcode
+        } else {
+            riscv::register::mepc::write(mepc + 4);
+        }
+
+        return;
+    }
     println!("trap!");
 
     println!("mstatus: {:016x}", riscv::register::mstatus::read().bits());
-    println!("mcause:  {:016x}", riscv::register::mcause::read().bits());
-    println!("mtval:   {:016x}", riscv::register::mtval::read());
-    println!("mepc:    {:016x}", riscv::register::mepc::read());
+    println!("mcause:  {:016x}", mcause.bits());
+    println!("mtval:   {:016x}", mtval);
+    println!("mepc:    {:016x}", mepc);
 
-    //    let mcause = riscv::register::mcause::read();
     loop {}
 }
 
@@ -116,32 +161,6 @@ unsafe extern "C" fn _setup_interrupts() {
         // Vector
         mstatus::set_vs(mstatus::VS::Initial);
     }
-}
-
-#[macro_export]
-macro_rules! println {
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut $crate::Console, $($arg)*).unwrap();
-        }
-    };
-    () => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut $crate::Console, "").unwrap();
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            write!(&mut $crate::Console, $($arg)*).unwrap();
-        }
-    };
 }
 
 #[derive(Debug)]
@@ -385,10 +404,10 @@ unsafe fn rvv_demo3() {
         out("t2") _,
     );
 
-    println!("batch: {}", batch); // batch = 32
     // 32 * 32 = 1024 = 128 * 8 using 8 vector registers, each 128 bits
+    println!("batch: {}", batch); // batch = 32
 
-    for i in 0..1024 {
+    for i in 0..8 {
         print!("c[{:04x}]: {:05}", i, c[i]);
         if i % 8 == 7 {
             println!();
@@ -462,6 +481,12 @@ unsafe extern "C" fn _start_rust() -> ! {
     println!("-= RVV Demo 3 =-");
     rvv_demo3();
 
+    println!("Rua CPU:");
+
+    // asm!("dcache.cpa a0");
+
+    ruacpu::detect();
+
     loop {
         println!(
             "!! Hello, world! {} {:016x}",
@@ -520,4 +545,10 @@ pub fn cpuid() {
     ", out(reg) cpuid0, out(reg) cpuid1, out(reg) cpuid2);
     }
     println!("cpuid: {:08x} {:08x} {:08x}", cpuid0, cpuid1, cpuid2);
+
+    let mut mxstatus: u64;
+    unsafe {
+        asm!("csrr {0}, 0x7C0", out(reg) mxstatus);
+    }
+    println!("mxstatus: {:08x}", mxstatus);
 }
