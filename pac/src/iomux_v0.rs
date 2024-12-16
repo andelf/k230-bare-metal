@@ -21,17 +21,17 @@ impl Iomux {
     }
     #[doc = "IOMUX control register, IO0 to IO63"]
     #[inline(always)]
-    pub const fn pad(self, n: usize) -> crate::common::Reg<regs::Ctrl, crate::common::RW> {
+    pub const fn pad(self, n: usize) -> crate::common::Reg<regs::IoCfg, crate::common::RW> {
         assert!(n < 64usize);
         unsafe { crate::common::Reg::from_ptr(self.ptr.add(0x0usize + n * 4usize) as _) }
     }
 }
 pub mod regs {
-    #[doc = "SWPORT abstraction."]
+    #[doc = "Function IO register"]
     #[repr(transparent)]
     #[derive(Copy, Clone, Eq, PartialEq)]
-    pub struct Ctrl(pub u32);
-    impl Ctrl {
+    pub struct IoCfg(pub u32);
+    impl IoCfg {
         #[doc = "Schmitt Trigger Enable"]
         #[inline(always)]
         pub const fn st(&self) -> bool {
@@ -98,17 +98,6 @@ pub mod regs {
         pub fn set_ie(&mut self, val: bool) {
             self.0 = (self.0 & !(0x01 << 8usize)) | (((val as u32) & 0x01) << 8usize);
         }
-        #[doc = "Miscellaneous Control"]
-        #[inline(always)]
-        pub const fn msc(&self) -> bool {
-            let val = (self.0 >> 9usize) & 0x01;
-            val != 0
-        }
-        #[doc = "Miscellaneous Control"]
-        #[inline(always)]
-        pub fn set_msc(&mut self, val: bool) {
-            self.0 = (self.0 & !(0x01 << 9usize)) | (((val as u32) & 0x01) << 9usize);
-        }
         #[doc = "Slew Rate Control"]
         #[inline(always)]
         pub const fn sl(&self) -> bool {
@@ -120,22 +109,33 @@ pub mod regs {
         pub fn set_sl(&mut self, val: bool) {
             self.0 = (self.0 & !(0x01 << 10usize)) | (((val as u32) & 0x01) << 10usize);
         }
-        #[doc = "IO Function Select"]
+        #[doc = "IO Function Select, func_no - 1"]
         #[inline(always)]
         pub const fn sel(&self) -> u8 {
-            let val = (self.0 >> 11usize) & 0x1f;
+            let val = (self.0 >> 11usize) & 0x07;
             val as u8
         }
-        #[doc = "IO Function Select"]
+        #[doc = "IO Function Select, func_no - 1"]
         #[inline(always)]
         pub fn set_sel(&mut self, val: u8) {
-            self.0 = (self.0 & !(0x1f << 11usize)) | (((val as u32) & 0x1f) << 11usize);
+            self.0 = (self.0 & !(0x07 << 11usize)) | (((val as u32) & 0x07) << 11usize);
+        }
+        #[doc = "Input data from outside the Chip to the PAD"]
+        #[inline(always)]
+        pub const fn di(&self) -> bool {
+            let val = (self.0 >> 31usize) & 0x01;
+            val != 0
+        }
+        #[doc = "Input data from outside the Chip to the PAD"]
+        #[inline(always)]
+        pub fn set_di(&mut self, val: bool) {
+            self.0 = (self.0 & !(0x01 << 31usize)) | (((val as u32) & 0x01) << 31usize);
         }
     }
-    impl Default for Ctrl {
+    impl Default for IoCfg {
         #[inline(always)]
-        fn default() -> Ctrl {
-            Ctrl(0)
+        fn default() -> IoCfg {
+            IoCfg(0)
         }
     }
 }

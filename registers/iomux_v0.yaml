@@ -8,23 +8,23 @@ block/IOMUX:
       array:
         len: 64
         stride: 4
-      fieldset: CTRL
-fieldset/CTRL:
-  description: SWPORT abstraction.
+      fieldset: IO_CFG
+fieldset/IO_CFG:
+  description: Function IO register
   fields:
+    - name: DI
+      description: Input data from outside the Chip to the PAD
+      bit_offset: 31
+      bit_size: 1
+
     - name: SEL
       description: IO Function Select, func_no - 1
       bit_offset: 11
-      bit_size: 5
+      bit_size: 3
 
     - name: SL
       description: Slew Rate Control
       bit_offset: 10
-      bit_size: 1
-
-    - name: MSC
-      description: Miscellaneous Control
-      bit_offset: 9
       bit_size: 1
 
     - name: IE
