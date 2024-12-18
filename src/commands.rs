@@ -43,7 +43,7 @@ pub fn handle_command_line(line: &str) {
             }
 
             loop {
-                unsafe { asm!("wfi") };
+               // unsafe { asm!("wfi") };
             }
         }
         Some("echo") => {

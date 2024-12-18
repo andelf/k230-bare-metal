@@ -432,10 +432,5 @@ unsafe fn panic(_info: &core::panic::PanicInfo) -> ! {
 
     riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(1000);
 
-    asm!(
-        "
-        la x31, 0x1f
-        .word 0x00000000"
-    );
     loop {}
 }
