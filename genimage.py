@@ -5,6 +5,7 @@ MAGIC = b"K230"
 
 def sha256(message):
     digest = hashlib.sha256(message).digest()
+    print("SHA256:", digest.hex())
     return digest
 
 
