@@ -4,41 +4,19 @@
 
 use core::{arch::asm, ptr};
 use embedded_hal::delay::DelayNs;
-use pac::UART0;
 
 extern crate k230_boot;
 use k230_boot::{bootinfo::BootInfo, entry_point};
-
-#[macro_export]
-macro_rules! println {
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut $crate::Console, $($arg)*).unwrap();
-        }
-    };
-    () => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut $crate::Console, "").unwrap();
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            write!(&mut $crate::Console, $($arg)*).unwrap();
-        }
-    };
-}
+use k230_kernel;
+use k230_kernel::console::{getchar, putc};
+use k230_kernel::println;
 
 pub mod boot;
 pub mod commands;
 pub mod readline;
 pub mod serial;
+
+use readline::Console;
 
 // 2-7 clock frequency
 pub const OSC24M: u32 = 24_000_000;
@@ -66,45 +44,6 @@ pub const STC_CLK: u32 = 27_000_000;
 
 // ASCII art of "Rust"
 const BANNER: &str = include_str!("BANNER");
-
-#[derive(Debug)]
-pub struct Console;
-
-impl core::fmt::Write for Console {
-    fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        for c in s.as_bytes() {
-            unsafe {
-                while !UART0.lsr().read().thre() {
-                    asm!("nop");
-                }
-
-                UART0.thr().write(|w| w.set_thr(*c));
-            }
-        }
-
-        Ok(())
-    }
-}
-
-pub fn getchar() -> u8 {
-    unsafe {
-        while !UART0.lsr().read().dr() {
-            asm!("nop");
-        }
-
-        UART0.rbr().read().rbr()
-    }
-}
-
-pub fn putc(c: u8) {
-    unsafe {
-        while !UART0.lsr().read().thre() {
-            asm!("nop");
-        }
-
-        UART0.thr().write(|w| w.set_thr(c));
-    }
-}
 
 // init UART3
 fn uart_init() {
@@ -257,10 +196,10 @@ fn shell_repl() {
 
     let mut editor = EditorBuilder::from_slice(&mut buffer)
         .with_slice_history(&mut history)
-        .build_sync(&mut Console)
+        .build_sync(&mut Console::new())
         .unwrap();
     loop {
-        match editor.readline(PROPMT, &mut Console) {
+        match editor.readline(PROPMT, &mut Console::new()) {
             Ok(s) => {
                 if s.len() > 0 {
                     beep();
@@ -284,6 +223,7 @@ fn shell_repl() {
 entry_point!(main);
 
 fn main(_bootinfo: &'static BootInfo) -> ! {
+    k230_kernel::init();
     println!("\r\n");
     println!("{}", BANNER);
     println!("Booting K230 using Rust ....");

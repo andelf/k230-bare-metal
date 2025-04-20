@@ -3,6 +3,8 @@ use core::{
     ptr::{self, slice_from_raw_parts},
 };
 
+use k230_kernel::println;
+
 use embedded_io::ReadReady;
 
 use core::fmt::Write;
@@ -87,7 +89,7 @@ pub fn litex_term_serial_boot() -> i32 {
         let mut timeout = true;
 
         while (riscv::register::mcycle::read64() - last_activity) < max_idle {
-            if Console.read_ready().unwrap() {
+            if Console::new().read_ready().unwrap() {
                 if i == 0 {
                     frame.payload_length = getchar();
                     last_activity = riscv::register::mcycle::read64();
@@ -222,7 +224,7 @@ fn check_ack() -> Ack {
     let started = riscv::register::mcycle::read64();
     let deadline = started + (CPU0_CORE_CLK as u64) * 3;
 
-    let mut uart = Console;
+    let mut uart = Console::new();
 
     let mut recongnized = 0;
 

@@ -1,9 +1,19 @@
 //! readline impl using [noline](https://github.com/rustne-kretser/noline)
 
 use core::arch::asm;
-
-use super::Console;
 use pac::UART0;
+
+pub struct Console {
+    c: k230_kernel::console::Console,
+}
+
+impl Console {
+    pub fn new() -> Console {
+        return Console {
+            c: k230_kernel::console::Console,
+        };
+    }
+}
 
 impl embedded_io::ErrorType for Console {
     type Error = core::convert::Infallible;

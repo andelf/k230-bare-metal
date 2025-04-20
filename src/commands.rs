@@ -1,4 +1,5 @@
 use core::{arch::asm, ptr};
+use k230_kernel::{print, println};
 
 pub fn handle_command_line(line: &str) {
     let mut it = line.split_whitespace();
