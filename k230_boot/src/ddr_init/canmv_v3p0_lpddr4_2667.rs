@@ -26,6 +26,7 @@
 //ddr_wite_bin(0x50000,gDdrI,ARRAY_SIZE(gDdrI));
 //ddr_wite_bin(0x54000,gDdrD,ARRAY_SIZE(gDdrD));
 pub const DDR_REG_BASE: u32 = 0x9800_0000;
+use crate::println;
 
 const G_DDR_I: &[u16] = &[
     0x0114, 0x0000, 0x0050, 0x0000, 0x0050, 0x0000, 0x0050, 0x0000, 0x0050, 0x0000, 0x0050, 0x0000,
@@ -1510,20 +1511,24 @@ pub const PLL3_CTL: u32 = BOOT_REG_BASE + 0x38;
 pub const PLL3_STAT: u32 = BOOT_REG_BASE + 0x3C;
 
 unsafe fn pd_pll(pll_ctl: u32, pll_stat: u32) {
-    core::ptr::write_volatile(pll_ctl as *mut u32, 0x10001);
-    let mut rdata = core::ptr::read_volatile(pll_stat as *const u32);
+    unsafe {
+        core::ptr::write_volatile(pll_ctl as *mut u32, 0x10001);
+        let mut rdata = core::ptr::read_volatile(pll_stat as *const u32);
 
-    while (rdata & 0x30) != 0x0 {
-        rdata = core::ptr::read_volatile(pll_stat as *const u32);
+        while (rdata & 0x30) != 0x0 {
+            rdata = core::ptr::read_volatile(pll_stat as *const u32);
+        }
     }
 }
 
 unsafe fn init_pll(pll_ctl: u32, pll_stat: u32) {
-    core::ptr::write_volatile(pll_ctl as *mut u32, 0x20002);
-    let mut rdata = core::ptr::read_volatile(pll_stat as *const u32);
+    unsafe {
+        core::ptr::write_volatile(pll_ctl as *mut u32, 0x20002);
+        let mut rdata = core::ptr::read_volatile(pll_stat as *const u32);
 
-    while (rdata & 0x30) != 0x20 {
-        rdata = core::ptr::read_volatile(pll_stat as *const u32);
+        while (rdata & 0x30) != 0x20 {
+            rdata = core::ptr::read_volatile(pll_stat as *const u32);
+        }
     }
 }
 
@@ -1536,16 +1541,18 @@ unsafe fn cfg_pll(
     pllx_ctl: u32,
     pllx_stat: u32,
 ) {
-    pd_pll(pllx_ctl, pllx_stat);
+    unsafe {
+        pd_pll(pllx_ctl, pllx_stat);
 
-    core::ptr::write_volatile(pllx_cfg1 as *mut u32, (fb_div.wrapping_div(4) | 0x2_0000));
+        core::ptr::write_volatile(pllx_cfg1 as *mut u32, fb_div.wrapping_div(4) | 0x2_0000);
 
-    core::ptr::write_volatile(
-        pllx_cfg0 as *mut u32,
-        (fb_div & 0x1fff) | ((ref_div & 0x3f) << 16) | ((out_div & 0xf) << 24),
-    );
+        core::ptr::write_volatile(
+            pllx_cfg0 as *mut u32,
+            (fb_div & 0x1fff) | ((ref_div & 0x3f) << 16) | ((out_div & 0xf) << 24),
+        );
 
-    init_pll(pllx_ctl, pllx_stat);
+        init_pll(pllx_ctl, pllx_stat);
+    }
 }
 
 fn change_pll_2660() {
@@ -2843,7 +2850,7 @@ pub fn board_ddr_init() {
     reg_write(DDR_REG_BASE + 0x000001b0, 0x00000034);
 
     data = reg_read(DDR_REG_BASE + 0x000001bc);
-    while ((data & 0x1) != 0x1) {
+    while (data & 0x1) != 0x1 {
         data = reg_read(DDR_REG_BASE + 0x000001bc);
     }
 
@@ -2854,12 +2861,12 @@ pub fn board_ddr_init() {
     reg_write(DDR_REG_BASE + 0x00000320, 0x00000001);
 
     data = reg_read(DDR_REG_BASE + 0x00000324);
-    while ((data & 0x1) != 0x1) {
+    while (data & 0x1) != 0x1 {
         data = reg_read(DDR_REG_BASE + 0x00000324);
     }
 
     data = reg_read(DDR_REG_BASE + 0x00000004);
-    while ((data & 0x1) != 0x1) {
+    while (data & 0x1) != 0x1 {
         data = reg_read(DDR_REG_BASE + 0x00000004);
     }
 
@@ -2869,7 +2876,7 @@ pub fn board_ddr_init() {
     reg_write(DDR_REG_BASE + 0x00000320, 0x00000001);
 
     data = reg_read(DDR_REG_BASE + 0x00000324);
-    while ((data & 0x1) != 0x1) {
+    while (data & 0x1) != 0x1 {
         data = reg_read(DDR_REG_BASE + 0x00000324);
     }
 

@@ -3,4 +3,5 @@
 
 pub mod bootinfo;
 pub mod console;
+pub mod ddr_init;
 pub mod rt;

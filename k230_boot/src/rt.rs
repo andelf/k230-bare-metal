@@ -182,6 +182,92 @@ unsafe extern "C" fn _early_init() {
         mstatus::set_fs(mstatus::FS::Initial);
         asm!("csrwi fcsr, 0");
     }
+
+    // UART0, memory, spl
+    board_init();
+}
+
+pub fn board_init() {
+    use pac::UART0;
+    // UART init
+    // UART is inited by BootROM, so we just disable FIFO and interrupt
+    UART0.ier().write(|w| w.0 = 0);
+    UART0.fcr().write(|w| {
+        w.set_fifoe(false);
+        w.set_xfifor(true);
+        w.set_rfifor(true);
+    });
+
+    println!("DDR init ...");
+
+    unsafe {
+        spl_device_disable();
+
+        #[cfg(feature = "init_ddr")]
+        {
+            use crate::ddr_init;
+            ddr_init::ddr_init_training();
+        }
+    }
+
+    println!("DDR init done!");
+}
+
+unsafe fn spl_device_disable() {
+    unsafe {
+        // disable ai power
+        if ptr::read_volatile(0x9110302c as *const u32) & 0x2 != 0 {
+            ptr::write_volatile(0x91103028 as *mut u32, 0x30001);
+        }
+
+        // disable vpu power
+        if ptr::read_volatile(0x91103080 as *const u32) & 0x2 != 0 {
+            ptr::write_volatile(0x9110307c as *mut u32, 0x30001);
+        }
+
+        // disable dpu power
+        if ptr::read_volatile(0x9110310c as *const u32) & 0x2 != 0 {
+            ptr::write_volatile(0x91103108 as *mut u32, 0x30001);
+        }
+
+        // disable disp power
+        if ptr::read_volatile(0x91103040 as *const u32) & 0x2 != 0 {
+            ptr::write_volatile(0x9110303c as *mut u32, 0x30001);
+        }
+    }
+
+    // check disable status
+    unsafe {
+        let mut value = 1000000;
+        while (!(ptr::read_volatile(0x9110302c as *const u32) & 0x1 != 0)
+            || !(ptr::read_volatile(0x91103080 as *const u32) & 0x1 != 0)
+            || !(ptr::read_volatile(0x9110310c as *const u32) & 0x1 != 0)
+            || !(ptr::read_volatile(0x91103040 as *const u32) & 0x1 != 0))
+            && value != 0
+        {
+            value -= 1;
+        }
+
+        // disable ai clk
+        value = ptr::read_volatile(0x91100008 as *const u32);
+        value &= !(1 << 0);
+        ptr::write_volatile(0x91100008 as *mut u32, value);
+
+        // disable vpu clk
+        value = ptr::read_volatile(0x9110000c as *const u32);
+        value &= !(1 << 0);
+        ptr::write_volatile(0x9110000c as *mut u32, value);
+
+        // disable dpu clk
+        value = ptr::read_volatile(0x91100070 as *const u32);
+        value &= !(1 << 0);
+        ptr::write_volatile(0x91100070 as *mut u32, value);
+
+        // disable mclk
+        value = ptr::read_volatile(0x9110006c as *const u32);
+        value &= !((1 << 0) | (1 << 1) | (1 << 2));
+        ptr::write_volatile(0x9110006c as *mut u32, value);
+    }
 }
 
 #[macro_export]

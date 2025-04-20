@@ -1,6 +1,8 @@
+use crate::println;
+
 pub const DDR_REG_BASE: u32 = 0x9800_0000;
 
-pub mod cammv_ddr_2133;
+pub mod canmv_ddr_2133;
 // CanMV v3.0 and LCKFB
 pub mod canmv_v3p0_lpddr4_2667;
 
@@ -10,7 +12,10 @@ pub mod canmv_v3p0_lpddr4_2667;
 pub const CONFIG_MEM_BASE_ADDR: u64 = 0x0; // 需要定义具体地址
 pub const CONFIG_SYS_CACHELINE_SIZE: u64 = 64; // 示例值，需要根据实际配置
 
-// pub use cammv_ddr_2133::board_ddr_init;
+#[cfg(feature = "ddr_2133")]
+pub use cammv_ddr_2133::board_ddr_init;
+
+#[cfg(feature = "ddr_2667")]
 pub use canmv_v3p0_lpddr4_2667::board_ddr_init;
 
 pub fn ddr_init_training() {
