@@ -1,0 +1,15 @@
+[package]
+name = "k230_boot"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+pac = { path = "../pac" }
+riscv = "0.12.1"
+
+
+[features]
+default = ["init_ddr", "ddr_2667"]
+init_ddr = []
+ddr_2133 = []
+ddr_2667 = []

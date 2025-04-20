@@ -4,42 +4,19 @@
 
 use core::{arch::asm, ptr};
 use embedded_hal::delay::DelayNs;
-use pac::UART0;
 
-#[macro_export]
-macro_rules! println {
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut $crate::Console, $($arg)*).unwrap();
-        }
-    };
-    () => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut $crate::Console, "").unwrap();
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            write!(&mut $crate::Console, $($arg)*).unwrap();
-        }
-    };
-}
+extern crate k230_boot;
+use k230_boot::{bootinfo::BootInfo, entry_point};
+use k230_kernel;
+use k230_kernel::console::{getchar, putc};
+use k230_kernel::println;
 
 pub mod boot;
 pub mod commands;
-#[allow(unused)]
-pub mod ddr_init;
 pub mod readline;
 pub mod serial;
 
-pub mod rt;
+use readline::Console;
 
 // 2-7 clock frequency
 pub const OSC24M: u32 = 24_000_000;
@@ -67,120 +44,6 @@ pub const STC_CLK: u32 = 27_000_000;
 
 // ASCII art of "Rust"
 const BANNER: &str = include_str!("BANNER");
-
-#[derive(Debug)]
-pub struct Console;
-
-impl core::fmt::Write for Console {
-    fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        for c in s.as_bytes() {
-            unsafe {
-                while !UART0.lsr().read().thre() {
-                    asm!("nop");
-                }
-
-                UART0.thr().write(|w| w.set_thr(*c));
-            }
-        }
-
-        Ok(())
-    }
-}
-
-pub fn getchar() -> u8 {
-    unsafe {
-        while !UART0.lsr().read().dr() {
-            asm!("nop");
-        }
-
-        UART0.rbr().read().rbr()
-    }
-}
-
-pub fn putc(c: u8) {
-    unsafe {
-        while !UART0.lsr().read().thre() {
-            asm!("nop");
-        }
-
-        UART0.thr().write(|w| w.set_thr(c));
-    }
-}
-
-unsafe fn spl_device_disable() {
-    // disable ai power
-    if ptr::read_volatile(0x9110302c as *const u32) & 0x2 != 0 {
-        ptr::write_volatile(0x91103028 as *mut u32, 0x30001);
-    }
-
-    // disable vpu power
-    if ptr::read_volatile(0x91103080 as *const u32) & 0x2 != 0 {
-        ptr::write_volatile(0x9110307c as *mut u32, 0x30001);
-    }
-
-    // disable dpu power
-    if ptr::read_volatile(0x9110310c as *const u32) & 0x2 != 0 {
-        ptr::write_volatile(0x91103108 as *mut u32, 0x30001);
-    }
-
-    // disable disp power
-    if ptr::read_volatile(0x91103040 as *const u32) & 0x2 != 0 {
-        ptr::write_volatile(0x9110303c as *mut u32, 0x30001);
-    }
-
-    // check disable status
-    let mut value = 1000000;
-    while (!(ptr::read_volatile(0x9110302c as *const u32) & 0x1 != 0)
-        || !(ptr::read_volatile(0x91103080 as *const u32) & 0x1 != 0)
-        || !(ptr::read_volatile(0x9110310c as *const u32) & 0x1 != 0)
-        || !(ptr::read_volatile(0x91103040 as *const u32) & 0x1 != 0))
-        && value != 0
-    {
-        value -= 1;
-    }
-
-    // disable ai clk
-    value = ptr::read_volatile(0x91100008 as *const u32);
-    value &= !(1 << 0);
-    ptr::write_volatile(0x91100008 as *mut u32, value);
-
-    // disable vpu clk
-    value = ptr::read_volatile(0x9110000c as *const u32);
-    value &= !(1 << 0);
-    ptr::write_volatile(0x9110000c as *mut u32, value);
-
-    // disable dpu clk
-    value = ptr::read_volatile(0x91100070 as *const u32);
-    value &= !(1 << 0);
-    ptr::write_volatile(0x91100070 as *mut u32, value);
-
-    // disable mclk
-    value = ptr::read_volatile(0x9110006c as *const u32);
-    value &= !((1 << 0) | (1 << 1) | (1 << 2));
-    ptr::write_volatile(0x9110006c as *mut u32, value);
-}
-
-unsafe fn board_init() {
-    // UART init
-    // UART is inited by BootROM, so we just disable FIFO and interrupt
-    UART0.ier().write(|w| w.0 = 0);
-    UART0.fcr().write(|w| {
-        w.set_fifoe(false);
-        w.set_xfifor(true);
-        w.set_rfifor(true);
-    });
-
-    println!("\r\n");
-    println!("{}", BANNER);
-    println!("Booting K230 using Rust ....");
-    println!("DDR init ...");
-
-    // spl_board_init_f
-    spl_device_disable();
-    ddr_init::ddr_init_training();
-
-    println!("DDR init done!");
-}
 
 // init UART3
 fn uart_init() {
@@ -231,6 +94,7 @@ fn tsensor_init() {
     });
 }
 
+#[allow(dead_code)]
 fn blinky() {
     // RGB LED of LCKFB
     // - R: GPIO62
@@ -332,10 +196,10 @@ fn shell_repl() {
 
     let mut editor = EditorBuilder::from_slice(&mut buffer)
         .with_slice_history(&mut history)
-        .build_sync(&mut Console)
+        .build_sync(&mut Console::new())
         .unwrap();
     loop {
-        match editor.readline(PROPMT, &mut Console) {
+        match editor.readline(PROPMT, &mut Console::new()) {
             Ok(s) => {
                 if s.len() > 0 {
                     beep();
@@ -356,15 +220,21 @@ fn shell_repl() {
     }
 }
 
-#[no_mangle]
-unsafe extern "C" fn _start_rust() -> ! {
-    board_init();
+entry_point!(main);
+
+fn main(_bootinfo: &'static BootInfo) -> ! {
+    k230_kernel::init();
+    println!("\r\n");
+    println!("{}", BANNER);
+    println!("Booting K230 using Rust ....");
 
     commands::cpuid();
 
     // read csr 0xfc1 mapbaddr, p
     let mut mapbaddr: u64;
-    asm!("csrr {0}, 0xfc1", out(reg) mapbaddr);
+    unsafe {
+        asm!("csrr {0}, 0xfc1", out(reg) mapbaddr);
+    }
     println!("PLIC base: 0x{:016x}", mapbaddr);
 
     let r = pac::GPIO0.config_reg1().read();

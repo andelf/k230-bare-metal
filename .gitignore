@@ -9,3 +9,7 @@ Cargo.lock
 *.asm
 
 out/
+
+
+/.vscode
+c

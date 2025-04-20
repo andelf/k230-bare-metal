@@ -34,10 +34,9 @@ macro_rules! print {
     };
 }
 
+pub mod rt;
 pub mod ruacpu;
 pub mod rvv;
-pub mod rt;
-
 
 #[derive(Debug)]
 pub struct Console;

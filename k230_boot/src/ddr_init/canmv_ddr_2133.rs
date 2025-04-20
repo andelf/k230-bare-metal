@@ -31,6 +31,8 @@
 // ddr_wite_bin(0x54000,gDdrD,ARRAY_SIZE(gDdrD));
 // static const unsigned short gDdrI[] = {
 
+use crate::println;
+
 pub const DDR_REG_BASE: u32 = 0x9800_0000;
 
 const G_DDR_I: &[u16] = &[
@@ -2044,7 +2046,10 @@ pub fn board_ddr_init() {
                 );
             }
             0x0000000c => {
-                println!("{:02x}: PMU Major Msg: End of LRDIMM Specific training (DWL, MREP, MRD and MWD)", train_data);
+                println!(
+                    "{:02x}: PMU Major Msg: End of LRDIMM Specific training (DWL, MREP, MRD and MWD)",
+                    train_data
+                );
             }
             0x0000000d => {
                 println!("{:02x}: PMU Major Msg: End of CA training", train_data);
@@ -2075,7 +2080,7 @@ pub fn board_ddr_init() {
 
         reg_write(DDR_REG_BASE + 0x000d0031 * 4 + 0x02000000, 0x00000000);
         data = reg_read(DDR_REG_BASE + 0x000d0004 * 4 + 0x02000000);
-        while ((data & 0x1) == 0x0) {
+        while (data & 0x1) == 0x0 {
             data = reg_read(DDR_REG_BASE + 0x000d0004 * 4 + 0x02000000);
         }
         reg_write(DDR_REG_BASE + 0x000d0031 * 4 + 0x02000000, 0x00000001);
@@ -2598,12 +2603,12 @@ pub fn board_ddr_init() {
     reg_write(DDR_REG_BASE + 0x00000320, 0x00000001);
 
     data = reg_read(DDR_REG_BASE + 0x00000324);
-    while ((data & 0x1) != 0x1) {
+    while (data & 0x1) != 0x1 {
         data = reg_read(DDR_REG_BASE + 0x00000324);
     }
 
     data = reg_read(DDR_REG_BASE + 0x00000004);
-    while ((data & 0x1) != 0x1) {
+    while (data & 0x1) != 0x1 {
         data = reg_read(DDR_REG_BASE + 0x00000004);
     }
 
@@ -2613,7 +2618,7 @@ pub fn board_ddr_init() {
     reg_write(DDR_REG_BASE + 0x00000320, 0x00000001);
 
     data = reg_read(DDR_REG_BASE + 0x00000324);
-    while ((data & 0x1) != 0x1) {
+    while (data & 0x1) != 0x1 {
         data = reg_read(DDR_REG_BASE + 0x00000324);
     }
 
