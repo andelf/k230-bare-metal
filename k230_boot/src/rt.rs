@@ -3,6 +3,8 @@ use core::{
     ptr,
 };
 
+use crate::println;
+
 /// Parse cfg attributes inside a global_asm call.
 macro_rules! cfg_global_asm {
     {@inner, [$($x:tt)*], } => {
@@ -69,8 +71,8 @@ __pre_init:
     ret",
 );
 
-#[link_section = ".trap"]
-#[no_mangle]
+#[unsafe(link_section = ".trap")]
+#[unsafe(no_mangle)]
 unsafe extern "riscv-interrupt-m" fn _start_trap_rust() {
     // riscv::delay::McycleDelay::new(CPU0_CORE_CLK).delay_ms(1000);
 
@@ -106,57 +108,65 @@ unsafe extern "riscv-interrupt-m" fn _start_trap_rust() {
 }
 
 // board_early_init
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn _early_init() {
     // STC init
-    ptr::write_volatile(0x9110_8020 as *mut u32, 0x1);
-    ptr::write_volatile(0x9110_8030 as *mut u32, 0x1);
-    ptr::write_volatile(0x9110_8000 as *mut u32, 0x69);
+    unsafe {
+        ptr::write_volatile(0x9110_8020 as *mut u32, 0x1);
+        ptr::write_volatile(0x9110_8030 as *mut u32, 0x1);
+        ptr::write_volatile(0x9110_8000 as *mut u32, 0x69);
+    }
 
     // CMU?
-    ptr::write_volatile(0x9110_0004 as *mut u32, 0x8019_9805);
+    unsafe {
+        ptr::write_volatile(0x9110_0004 as *mut u32, 0x8019_9805);
+    }
 
     // SYSCTL_PWR_BASE_ADDRn
     // ptr::write_volatile((0x91103000_u32 + 0x158) as *mut u32, 0x0);
     pac::PWR.pmu_pwr_lpi_ctl().write_value(0);
 
     // disable all pmp
-    asm!(
-        "
-        li t0, 0xffffffff
-        csrw pmpaddr0, t0
-        li t0, 0x1f
-        csrw pmpcfg0, t0
-    "
-    );
-
-    // performance settings
-    if false {
+    unsafe {
         asm!(
             "
-        la t0, 0x70013
-        // MCOR
-        csrw 0x7c2, t0
-        la t0, 0xe0000009
-        // MCCR2
-        csrw 0x7c3, t0
-
-        la t0, 0x11ff
-        // MHCR
-        csrw 0x7c1, t0
-
-        la t0, 0x638000
-        // MXSTATUS
-        csrw 0x7c0, t0
-
-        la t0, 0x6e30c
-        // MHINT
-        csrw 0x7c5, t0
+            li t0, 0xffffffff
+            csrw pmpaddr0, t0
+            li t0, 0x1f
+            csrw pmpcfg0, t0
         "
         );
     }
 
-    {
+    // performance settings
+    if false {
+        unsafe {
+            asm!(
+                "
+            la t0, 0x70013
+            // MCOR
+            csrw 0x7c2, t0
+            la t0, 0xe0000009
+            // MCCR2
+            csrw 0x7c3, t0
+
+            la t0, 0x11ff
+            // MHCR
+            csrw 0x7c1, t0
+
+            la t0, 0x638000
+            // MXSTATUS
+            csrw 0x7c0, t0
+
+            la t0, 0x6e30c
+            // MHINT
+            csrw 0x7c5, t0
+            "
+            );
+        }
+    }
+
+    unsafe {
         use riscv::register::*;
 
         mstatus::set_mie(); // enable global interrupt
@@ -172,4 +182,20 @@ unsafe extern "C" fn _early_init() {
         mstatus::set_fs(mstatus::FS::Initial);
         asm!("csrwi fcsr, 0");
     }
+}
+
+#[macro_export]
+macro_rules! entry_point {
+    ($path:path) => {
+        #[unsafe(export_name = "_start_rust")]
+        pub extern "C" fn __impl_start_rust() -> ! {
+            static BOOTINFO: BootInfo = BootInfo {
+                debug_console: $crate::console::Console,
+            };
+            // validate the signature of the program entry point
+            let f: fn(&'static $crate::bootinfo::BootInfo) -> ! = $path;
+
+            f(&BOOTINFO)
+        }
+    };
 }

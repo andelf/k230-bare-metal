@@ -6,6 +6,9 @@ use core::{arch::asm, ptr};
 use embedded_hal::delay::DelayNs;
 use pac::UART0;
 
+extern crate k230_boot;
+use k230_boot::{bootinfo::BootInfo, entry_point};
+
 #[macro_export]
 macro_rules! println {
     ($($arg:tt)*) => {
@@ -38,8 +41,6 @@ pub mod commands;
 pub mod ddr_init;
 pub mod readline;
 pub mod serial;
-
-pub mod rt;
 
 // 2-7 clock frequency
 pub const OSC24M: u32 = 24_000_000;
@@ -356,15 +357,20 @@ fn shell_repl() {
     }
 }
 
-#[no_mangle]
-unsafe extern "C" fn _start_rust() -> ! {
-    board_init();
+entry_point!(main);
+
+fn main(_bootinfo: &'static BootInfo) -> ! {
+    unsafe {
+        board_init();
+    }
 
     commands::cpuid();
 
     // read csr 0xfc1 mapbaddr, p
     let mut mapbaddr: u64;
-    asm!("csrr {0}, 0xfc1", out(reg) mapbaddr);
+    unsafe {
+        asm!("csrr {0}, 0xfc1", out(reg) mapbaddr);
+    }
     println!("PLIC base: 0x{:016x}", mapbaddr);
 
     let r = pac::GPIO0.config_reg1().read();
