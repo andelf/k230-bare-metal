@@ -105,7 +105,7 @@ pub fn cpuid() {
     let mip = riscv::register::mip::read();
     println!("mip: {:016x}", mip.bits());
 
-    let misa = riscv::register::misa::read().unwrap();
+    let misa = riscv::register::misa::read();
 
     println!("misa: {:x}", misa.bits());
     print!("  RV64");
@@ -116,10 +116,10 @@ pub fn cpuid() {
     }
     println!();
 
-    let mvendorid = riscv::register::mvendorid::read().unwrap();
+    let mvendorid = riscv::register::mvendorid::read();
     println!("mvendorid: {:x}", mvendorid.bits());
 
-    let marchid = riscv::register::marchid::read().unwrap();
+    let marchid = riscv::register::marchid::read();
     println!("marchid: {:x}", marchid.bits());
 
     let mhartid = riscv::register::mhartid::read();

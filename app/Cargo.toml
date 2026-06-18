@@ -7,4 +7,4 @@ edition = "2021"
 embedded-hal = "1.0.0"
 
 pac = { path = "../pac" }
-riscv = "0.12.1"
+riscv = "0.16.1"

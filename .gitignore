@@ -5,7 +5,6 @@ __pycache__/
 *.img
 trash/
 tmp/
-Cargo.lock
 *.bin
 
 *.asm

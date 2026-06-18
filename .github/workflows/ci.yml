@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Rust nightly
+        run: |
+          rustup toolchain install nightly --profile minimal --component rust-src --component rustfmt --component llvm-tools-preview
+          rustup default nightly
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Build CPU0 firmware
+        run: cargo build --release --locked
+
+      - name: Build CPU1 payload
+        run: ./gen-big-core-app.sh
+
+      - name: Build TF card image
+        run: |
+          rust-objcopy -O binary target/riscv64gc-unknown-none-elf/release/k230-bare-metal firmware.bin
+          python3 genimage.py
+          sha256sum firmware.bin firmware.img big-core.bin
