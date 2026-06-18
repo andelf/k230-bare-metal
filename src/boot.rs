@@ -39,6 +39,27 @@ pub const SFL_ACK_CRCERROR: u8 = b'C';
 pub const SFL_ACK_UNKNOWN: u8 = b'U';
 pub const SFL_ACK_ERROR: u8 = b'E';
 
+pub fn jump_big_core(jump_addr: u32) -> ! {
+    crate::mailbox_console::init();
+
+    unsafe {
+        ptr::write_volatile(0x91102104 as *mut u32, jump_addr);
+        ptr::write_volatile(0x9110100c as *mut u32, 0x10001000);
+        ptr::write_volatile(0x9110100c as *mut u32, 0x10001);
+        ptr::write_volatile(0x9110100c as *mut u32, 0x10000);
+    }
+
+    loop {
+        if let Some(byte) = crate::mailbox_console::try_read_byte() {
+            putc(byte);
+        } else {
+            unsafe {
+                asm!("nop");
+            }
+        }
+    }
+}
+
 pub struct DebugConsole;
 
 unsafe impl crate::serial::DevId for DebugConsole {
@@ -70,7 +91,7 @@ pub fn litex_term_serial_boot() -> i32 {
     }
 
     let mut last_activity = riscv::register::mcycle::read64();
-    let mut max_idle = (CPU0_CORE_CLK * 3) as u64;
+    let max_idle = (CPU0_CORE_CLK * 3) as u64;
 
     let mut frame = SflFrame {
         payload_length: 0,
@@ -143,7 +164,6 @@ pub fn litex_term_serial_boot() -> i32 {
         match frame.cmd {
             SFL_CMD_ABORT => {
                 // reset fails
-                failures = 0;
                 putc(SFL_ACK_SUCCESS);
                 return 1;
             }
@@ -161,8 +181,6 @@ pub fn litex_term_serial_boot() -> i32 {
                 putc(SFL_ACK_SUCCESS);
             }
             SFL_CMD_JUMP => {
-                failures = 0;
-
                 let jump_addr = u32::from_be_bytes(frame.payload[0..4].try_into().unwrap());
 
                 putc(SFL_ACK_SUCCESS);
@@ -171,37 +189,7 @@ pub fn litex_term_serial_boot() -> i32 {
 
                 println!("Jumping to 0x{:08x}...", jump_addr);
 
-                println!("fake run");
-
-                // run in big core
-                // reset sequence
-                /*
-                unsafe {
-                    ptr::write_volatile(0x91102104 as *mut u32, jump_addr);
-                    ptr::write_volatile(0x9110100c as *mut u32, 0x10001000);
-                    ptr::write_volatile(0x9110100c as *mut u32, 0x10001);
-                    ptr::write_volatile(0x9110100c as *mut u32, 0x10000);
-                }
-
-                loop {
-                    unsafe {
-                        asm!("wfi");
-                    }
-                }
-                */
-
-                /*
-                unsafe {
-                    asm!(
-                        "mv a0, {0}
-                         jr a0",
-                        in(reg) jump_addr,
-                        options(noreturn)
-                    );
-                }
-                */
-
-                return 0;
+                jump_big_core(jump_addr);
             }
             _ => {
                 failures += 1;
@@ -215,7 +203,6 @@ pub fn litex_term_serial_boot() -> i32 {
             }
         }
     } // outer loop
-    return 1;
 }
 
 fn check_ack() -> Ack {

@@ -55,6 +55,23 @@ Jumping to 0x01000000...
 K230> jumpbig
 ```
 
+For a running `K230>` shell, use the repository loader:
+
+```console
+> python3 tools/k230_serial_load.py /dev/cu.usbmodem7E238F0602BE1 --image ./big-core.bin --address 0x01000000 --monitor
+Booting from serial...
+Press Q or ESC to abort boot completely.
+sL5DdSMmkekro
+Uploading big-core.bin to 0x01000000
+Upload complete
+Jumping to 0x01000000
+```
+
+The loader sends `serialboot`, waits for the LiteX SFL magic, uploads the image, and sends
+the SFL `JUMP` command. The firmware starts CPU1 from the uploaded address.
+CPU1 console output is forwarded through a mailbox-style shared console and printed by CPU0
+on UART0, so `--monitor` shows the second-stage output on the same serial port.
+
 ### Boot Log on UART0
 
 ```text

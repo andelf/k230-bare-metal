@@ -36,6 +36,7 @@ pub mod boot;
 pub mod commands;
 #[allow(unused)]
 pub mod ddr_init;
+pub mod mailbox_console;
 pub mod readline;
 pub mod serial;
 
@@ -177,9 +178,11 @@ unsafe fn board_init() {
 
     // spl_board_init_f
     spl_device_disable();
-    ddr_init::ddr_init_training();
-
-    println!("DDR init done!");
+    if ddr_init::ddr_init_training() {
+        println!("DDR init done!");
+    } else {
+        println!("DDR init completed with PMU fatal status!");
+    }
 }
 
 // init UART3
@@ -321,36 +324,47 @@ fn beep() {
 }
 
 fn shell_repl() {
-    use noline::builder::EditorBuilder;
-    use noline::error::NolineError;
+    const PROMPT: &str = "K230> ";
+    let mut line = [0u8; 256];
 
-    let mut buffer = [0; 1024];
-    let mut history = [0; 1024];
-    // noline doesn't support color prompt
-    // const PROPMT: &str = "\x1b[32;1mK230\x1b[0m> ";
-    const PROPMT: &str = "K230> ";
-
-    let mut editor = EditorBuilder::from_slice(&mut buffer)
-        .with_slice_history(&mut history)
-        .build_sync(&mut Console)
-        .unwrap();
     loop {
-        match editor.readline(PROPMT, &mut Console) {
-            Ok(s) => {
-                if s.len() > 0 {
-                    beep();
-                    commands::handle_command_line(s);
-                } else {
+        print!("{}", PROMPT);
+        let mut len = 0;
+
+        loop {
+            let c = getchar();
+            match c {
+                b'\r' | b'\n' => {
                     println!("");
+                    if len > 0 {
+                        beep();
+                        match core::str::from_utf8(&line[..len]) {
+                            Ok(s) => commands::handle_command_line(s),
+                            Err(_) => println!("Invalid UTF-8 command"),
+                        }
+                    }
+                    break;
                 }
-            }
-            Err(err) => {
-                let error = match err {
-                    NolineError::IoError(_) => "IoError",
-                    NolineError::ParserError => "ParserError",
-                    NolineError::Aborted => "Aborted",
-                };
-                println!("Error: {}\r", error);
+                0x03 => {
+                    println!("^C");
+                    break;
+                }
+                0x08 | 0x7f => {
+                    if len > 0 {
+                        len -= 1;
+                        print!("\x08 \x08");
+                    }
+                }
+                0x20..=0x7e => {
+                    if len < line.len() {
+                        line[len] = c;
+                        len += 1;
+                        putc(c);
+                    } else {
+                        putc(b'\x07');
+                    }
+                }
+                _ => {}
             }
         }
     }

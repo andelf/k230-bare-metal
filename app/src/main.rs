@@ -3,10 +3,7 @@
 #![feature(abi_riscv_interrupt)]
 
 use core::arch::asm;
-use core::arch::global_asm;
-use core::ptr;
 use embedded_hal::delay::DelayNs;
-use pac::UART3;
 
 #[macro_export]
 macro_rules! println {
@@ -34,10 +31,10 @@ macro_rules! print {
     };
 }
 
+pub mod mailbox_console;
+pub mod rt;
 pub mod ruacpu;
 pub mod rvv;
-pub mod rt;
-
 
 #[derive(Debug)]
 pub struct Console;
@@ -45,62 +42,15 @@ pub struct Console;
 impl core::fmt::Write for Console {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for c in s.as_bytes() {
-            unsafe {
-                while !UART3.lsr().read().thre() {
-                    asm!("nop");
-                }
-
-                UART3.thr().write(|w| w.set_thr(*c));
-            }
+            mailbox_console::sbi_console_putchar(*c);
         }
 
         Ok(())
     }
 }
 
-fn init_uart() {
-    let r = UART3;
-
-    r.thr().write(|w| w.set_thr(b'H' as u8));
-    r.thr().write(|w| w.set_thr(b'H' as u8));
-    r.thr().write(|w| w.set_thr(b'H' as u8));
-    r.thr().write(|w| w.set_thr(b'H' as u8));
-    r.thr().write(|w| w.set_thr(b'H' as u8));
-
-    unsafe {
-        ptr::write_volatile(0x911050c8 as *mut u32, 0x00000a8f); // UART3_TX. GPIO50
-        ptr::write_volatile(0x911050cc as *mut u32, 0x80000bd0); // UART3_RX
-    }
-
-    let baud_rate = 115200;
-    let clock_in = 50_000_000;
-    let div = clock_in / (16 * baud_rate);
-
-    // set baudrate
-    r.lcr().write(|w| w.set_dlab(true));
-    r.dlh().write(|w| w.set_dlh((div >> 8) as u8));
-    r.dll().write(|w| w.set_dll(div as u8));
-    r.lcr().write(|w| w.set_dlab(false));
-
-    r.lcr().write(|w| {
-        w.set_stop(pac::uart::vals::StopBits::STOP1);
-        w.set_wls(pac::uart::vals::DataBits::BIT8);
-        w.set_pen(false);
-    });
-    r.fcr().write(|w| w.set_fifoe(true));
-    // no modem
-    r.mcr().write(|w| {
-        w.set_out1(false);
-        w.set_out2(false);
-    });
-    // no interrupt
-    r.ier().modify(|w| w.0 = 0);
-}
-
 #[no_mangle]
 unsafe extern "C" fn _start_rust() -> ! {
-    init_uart();
-
     let mut delay = riscv::delay::McycleDelay::new(1_600_000_000);
 
     println!("\r\n\r\n2nd stage on CPU1");

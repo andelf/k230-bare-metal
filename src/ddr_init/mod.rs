@@ -1,7 +1,8 @@
 pub const DDR_REG_BASE: u32 = 0x9800_0000;
 
 pub mod cammv_ddr_2133;
-// CanMV v3.0 and LCKFB
+// Matches upstream CanMV K230D U-Boot LPDDR4 2667 init:
+// k230_canmv/lpddr4_init_32_swap_2667.c
 pub mod canmv_v3p0_lpddr4_2667;
 
 //#define CONFIG_MEM_BASE_ADDR    0x00
@@ -12,13 +13,16 @@ pub const CONFIG_SYS_CACHELINE_SIZE: u64 = 64; // 示例值，需要根据实际
 
 // pub use cammv_ddr_2133::board_ddr_init;
 pub use canmv_v3p0_lpddr4_2667::board_ddr_init;
+pub use canmv_v3p0_lpddr4_2667::board_ddr_init_checked;
 
-pub fn ddr_init_training() {
+pub fn ddr_init_training() -> bool {
     const ADDR: u32 = 0x980001bc;
 
     unsafe {
         if core::ptr::read_volatile(ADDR as *const u32) & 1 == 0 {
-            board_ddr_init();
+            board_ddr_init_checked()
+        } else {
+            true
         }
     }
 }

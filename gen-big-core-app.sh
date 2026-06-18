@@ -2,6 +2,7 @@
 
 set -ex
 
-cargo objcopy -p app --release --target riscv64gcv-unknown-none-elf.json -- -O binary big-core.bin
+cargo -Zjson-target-spec build -p app --release --target riscv64gcv-unknown-none-elf.json
+rust-objcopy -O binary target/riscv64gcv-unknown-none-elf/release/app big-core.bin
 
 ls -lah big-core.bin

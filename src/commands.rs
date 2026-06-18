@@ -1,4 +1,4 @@
-use core::{arch::asm, ptr};
+use core::arch::asm;
 
 pub fn handle_command_line(line: &str) {
     let mut it = line.split_whitespace();
@@ -35,16 +35,7 @@ pub fn handle_command_line(line: &str) {
             let jump_addr = it.next().and_then(parse_number).unwrap_or(0x0100_0000);
 
             println!("Jump to 0x{:08x} with CPU1", jump_addr);
-            unsafe {
-                ptr::write_volatile(0x91102104 as *mut u32, jump_addr as u32);
-                ptr::write_volatile(0x9110100c as *mut u32, 0x10001000);
-                ptr::write_volatile(0x9110100c as *mut u32, 0x10001);
-                ptr::write_volatile(0x9110100c as *mut u32, 0x10000);
-            }
-
-            loop {
-               // unsafe { asm!("wfi") };
-            }
+            crate::boot::jump_big_core(jump_addr as u32);
         }
         Some("echo") => {
             for word in it {

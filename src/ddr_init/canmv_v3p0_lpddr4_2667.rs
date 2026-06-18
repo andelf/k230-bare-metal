@@ -1590,8 +1590,13 @@ fn change_pll_2660() {
 }
 
 pub fn board_ddr_init() {
+    let _ = board_ddr_init_checked();
+}
+
+pub fn board_ddr_init_checked() -> bool {
     let mut data: u32;
     let mut train_data = 0;
+    let mut pmu_fatal = false;
 
     change_pll_2660();
 
@@ -2245,7 +2250,10 @@ pub fn board_ddr_init() {
                 "{:08X}: PMU Major Msg: End of Write leveling coarse delay",
                 train_data
             ),
-            0x0000_00ff => println!("{:08X}: PMU Major Msg: FATAL ERROR.", train_data),
+            0x0000_00ff => {
+                pmu_fatal = true;
+                println!("{:08X}: PMU Major Msg: FATAL ERROR.", train_data);
+            }
             _ => println!(
                 "{:08X}: PMU Major Msg: Un-recognized message... !",
                 train_data
@@ -2899,4 +2907,6 @@ pub fn board_ddr_init() {
     //     for(i=0;i<8;i++)
     //     {add = DDR_REG_BASE +  0x00013040*4+0x02000000+i*0x100*4; printf("dbyte3 add =%lx value =%lx\n",add,readl(add)); }
     // }
+
+    !pmu_fatal
 }

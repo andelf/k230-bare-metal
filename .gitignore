@@ -1,4 +1,6 @@
 /target
+__pycache__/
+*.pyc
 
 *.img
 trash/
