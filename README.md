@@ -72,6 +72,40 @@ the SFL `JUMP` command. The firmware starts CPU1 from the uploaded address.
 CPU1 console output is forwarded through a mailbox-style shared console and printed by CPU0
 on UART0, so `--monitor` shows the second-stage output on the same serial port.
 
+### PMU GPIO and K230D Lite RGB LED
+
+K230D exposes `GPIO64..GPIO71` through the PMU/RTC domain. The firmware maps them as
+GPIO group2 on `GPIO1` port1:
+
+```text
+GPIO64 -> GPIO1 port1 bit0
+GPIO65 -> GPIO1 port1 bit1
+GPIO66 -> GPIO1 port1 bit2
+GPIO71 -> GPIO1 port1 bit7
+```
+
+On LushanPi Lite K230D, the onboard RGB LED is wired to:
+
+```text
+red   -> GPIO65 / INT1
+green -> GPIO66 / INT2
+blue  -> GPIO71 / OUT1
+```
+
+The shell exposes PMU/GPIO inspection and LED commands:
+
+```console
+K230> pmu_dump
+K230> pin_dump 65
+K230> pin_dump 66
+K230> pin_dump 71
+K230> led test
+```
+
+`led test` drives red, green, blue, white, and off in sequence. This has been verified
+on K230D hardware. The PMU GPIO command path is restricted to the schematic-backed LED
+pins `65`, `66`, and `71`; normal-domain `gpio_set` is limited to `GPIO0..GPIO63`.
+
 ### Boot Log on UART0
 
 ```text

@@ -32,6 +32,7 @@ macro_rules! print {
     };
 }
 
+pub mod board_gpio;
 pub mod boot;
 pub mod commands;
 #[allow(unused)]

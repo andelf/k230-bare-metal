@@ -1,5 +1,7 @@
 use core::arch::asm;
 
+use embedded_hal::delay::DelayNs;
+
 pub fn handle_command_line(line: &str) {
     let mut it = line.split_whitespace();
 
@@ -14,6 +16,13 @@ pub fn handle_command_line(line: &str) {
             println!("  mem_read <address> <length> - read memory");
             println!("  mem_write <address> <u32> - write memory");
             println!("  tsensor - read temperature sensor");
+            println!("  pmu_dump - dump PMU and PMU IO registers");
+            println!("  pin_dump <pin> - dump GPIO/IOMUX state");
+            println!("  gpio_get <0-71> - read GPIO external level");
+            println!("  gpio_set <0-63> <0|1> - set normal-domain GPIO");
+            println!("  pmu_gpio_set <65|66|71> <0|1> - set PMU LED GPIO");
+            println!("  pmu_out1 <0|1> - set PMU OUT1 software level");
+            println!("  led <off|red|green|blue|white|test> - control K230D Lite RGB LED");
             println!("  cpuid - print CPUID");
             println!("  serialboot - enter serial boot mode");
             println!("  jump <address> - jump to address");
@@ -63,6 +72,77 @@ pub fn handle_command_line(line: &str) {
                 println!("Temperature: {:.2}°C", tsensor_calculate_temperature(temp));
                 break;
             }
+        },
+        Some("pmu_dump") => {
+            crate::board_gpio::dump_pmu();
+        }
+        Some("pin_dump") => {
+            let pin = it.next().and_then(parse_u8);
+            match pin.and_then(|pin| crate::board_gpio::dump_pin(pin).ok()) {
+                Some(dump) => {
+                    println!(
+                        "pin {} group{} port{} bit{}",
+                        dump.pin, dump.group, dump.port, dump.bit
+                    );
+                    println!("iomux/io_cfg = 0x{:08x}", dump.iomux);
+                    println!("dr          = 0x{:08x}", dump.dr);
+                    println!("ddr         = 0x{:08x}", dump.ddr);
+                    println!("ctl         = 0x{:08x}", dump.ctl);
+                    println!("ext         = 0x{:08x}", dump.ext);
+                }
+                None => println!("pin_dump <0-71>"),
+            }
+        }
+        Some("gpio_get") => {
+            let pin = it.next().and_then(parse_u8);
+            match pin.and_then(|pin| crate::board_gpio::read_gpio(pin).ok()) {
+                Some(high) => println!("{}", high as u8),
+                None => println!("gpio_get <0-71>"),
+            }
+        }
+        Some("gpio_set") => {
+            let pin = it.next().and_then(parse_u8);
+            let high = it.next().and_then(parse_bool);
+            match (pin, high) {
+                (Some(pin), Some(high)) => match crate::board_gpio::set_gpio(pin, high) {
+                    Ok(()) => println!("GPIO{}={}", pin, high as u8),
+                    Err(_) => println!("gpio_set supports normal-domain GPIO0-63"),
+                },
+                _ => println!("gpio_set <0-63> <0|1>"),
+            }
+        }
+        Some("pmu_gpio_set") => {
+            let pin = it.next().and_then(parse_u8);
+            let high = it.next().and_then(parse_bool);
+            match (pin, high) {
+                (Some(pin), Some(high)) => match crate::board_gpio::set_pmu_led_gpio(pin, high) {
+                    Ok(()) => println!("PMU GPIO{}={}", pin, high as u8),
+                    Err(_) => println!("pmu_gpio_set supports LED pins 65, 66, 71"),
+                },
+                _ => println!("pmu_gpio_set <65|66|71> <0|1>"),
+            }
+        }
+        Some("pmu_out1") => {
+            let high = it.next().and_then(parse_bool);
+            match high {
+                Some(high) => {
+                    crate::board_gpio::set_pmu_out1(high);
+                    println!(
+                        "PMU OUT1 software level={}",
+                        crate::board_gpio::pmu_out1_level() as u8
+                    );
+                }
+                None => println!("pmu_out1 <0|1>"),
+            }
+        }
+        Some("led") => match it.next() {
+            Some("off") => set_led(false, false, false),
+            Some("red") => set_led(true, false, false),
+            Some("green") => set_led(false, true, false),
+            Some("blue") => set_led(false, false, true),
+            Some("white") => set_led(true, true, true),
+            Some("test") => led_test(),
+            _ => println!("led <off|red|green|blue|white|test>"),
         },
         Some("serialboot") => {
             crate::boot::litex_term_serial_boot();
@@ -146,6 +226,29 @@ pub fn handle_command_line(line: &str) {
     }
 }
 
+fn set_led(red: bool, green: bool, blue: bool) {
+    match crate::board_gpio::set_rgb(red, green, blue) {
+        Ok(()) => println!("LED r={} g={} b={}", red as u8, green as u8, blue as u8),
+        Err(_) => println!("LED control supports pins 65, 66, 71"),
+    }
+}
+
+fn led_test() {
+    let mut delay = riscv::delay::McycleDelay::new(crate::CPU0_CORE_CLK);
+    let sequence = [
+        (true, false, false),
+        (false, true, false),
+        (false, false, true),
+        (true, true, true),
+        (false, false, false),
+    ];
+
+    for (red, green, blue) in sequence {
+        set_led(red, green, blue);
+        delay.delay_ms(400);
+    }
+}
+
 pub fn parse_number(s: &str) -> Option<u64> {
     if s.starts_with("0x") || s.starts_with("0X") {
         u64::from_str_radix(&s[2..], 16).ok()
@@ -153,6 +256,18 @@ pub fn parse_number(s: &str) -> Option<u64> {
         u64::from_str_radix(&s[2..], 2).ok()
     } else {
         s.parse().ok()
+    }
+}
+
+fn parse_u8(s: &str) -> Option<u8> {
+    parse_number(s).and_then(|value| u8::try_from(value).ok())
+}
+
+fn parse_bool(s: &str) -> Option<bool> {
+    match s {
+        "0" | "low" | "off" => Some(false),
+        "1" | "high" | "on" => Some(true),
+        _ => None,
     }
 }
 
