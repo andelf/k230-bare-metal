@@ -39,6 +39,22 @@ pub const SFL_ACK_CRCERROR: u8 = b'C';
 pub const SFL_ACK_UNKNOWN: u8 = b'U';
 pub const SFL_ACK_ERROR: u8 = b'E';
 
+const CPU0_FIRMWARE_ADDR: usize = 0x8030_0000;
+const CPU0_FIRMWARE_MAX_LEN: usize = 0x0008_0000;
+const CPU0_UPDATE_STAGING_ADDR: usize = 0x8020_0000;
+const CPU0_UPDATE_TRAMPOLINE_ADDR: usize = 0x803f_0000;
+
+const CPU0_UPDATE_TRAMPOLINE: [u8; 28] = [
+    0x09, 0xca, 0x83, 0x42, 0x05, 0x00, 0x23, 0x80, 0x55, 0x00, 0x05, 0x05, 0x85, 0x05, 0x7d, 0x16,
+    0xc5, 0xbf, 0x0f, 0x00, 0x30, 0x03, 0x0f, 0x10, 0x00, 0x00, 0x82, 0x86,
+];
+
+#[derive(Copy, Clone, Eq, PartialEq)]
+enum SerialMode {
+    BigCore,
+    Cpu0Update,
+}
+
 pub fn jump_big_core(jump_addr: u32) -> ! {
     crate::mailbox_console::init();
 
@@ -68,7 +84,24 @@ unsafe impl crate::serial::DevId for DebugConsole {
 
 // simulate LiteX's serialboot
 pub fn litex_term_serial_boot() -> i32 {
-    println!("Booting from serial...");
+    serial_loader(SerialMode::BigCore)
+}
+
+pub fn serial_firmware_update() -> i32 {
+    serial_loader(SerialMode::Cpu0Update)
+}
+
+fn serial_loader(mode: SerialMode) -> i32 {
+    match mode {
+        SerialMode::BigCore => println!("Booting from serial..."),
+        SerialMode::Cpu0Update => {
+            println!("Updating CPU0 firmware from serial...");
+            println!(
+                "Upload firmware.bin to 0x{:08x}, max {} bytes.",
+                CPU0_UPDATE_STAGING_ADDR, CPU0_FIRMWARE_MAX_LEN
+            );
+        }
+    }
     println!("Press Q or ESC to abort boot completely.");
 
     let mut debug_shell: Uart<'_, DebugConsole> = Uart::new();
@@ -99,6 +132,7 @@ pub fn litex_term_serial_boot() -> i32 {
         cmd: 0,
         payload: [0; 255],
     };
+    let mut update_loaded_end = CPU0_UPDATE_STAGING_ADDR;
 
     // Ack
     let mut failures = 0;
@@ -171,13 +205,27 @@ pub fn litex_term_serial_boot() -> i32 {
                 failures = 0;
 
                 let load_addr = u32::from_be_bytes(frame.payload[0..4].try_into().unwrap());
+                let copy_len = frame.payload_length as usize - 4;
+
+                if mode == SerialMode::Cpu0Update
+                    && !cpu0_update_range_valid(load_addr as usize, copy_len)
+                {
+                    putc(SFL_ACK_ERROR);
+                    continue;
+                }
+
                 unsafe {
                     core::ptr::copy_nonoverlapping(
                         frame.payload[4..].as_ptr(),
                         load_addr as *mut u8,
-                        frame.payload_length as usize - 4,
+                        copy_len,
                     );
                 }
+
+                if mode == SerialMode::Cpu0Update {
+                    update_loaded_end = update_loaded_end.max(load_addr as usize + copy_len);
+                }
+
                 putc(SFL_ACK_SUCCESS);
             }
             SFL_CMD_JUMP => {
@@ -185,11 +233,28 @@ pub fn litex_term_serial_boot() -> i32 {
 
                 putc(SFL_ACK_SUCCESS);
 
-                writeln!(debug_shell, "\r\nJumping to 0x{:08x}...", jump_addr).unwrap();
+                match mode {
+                    SerialMode::BigCore => {
+                        writeln!(debug_shell, "\r\nJumping to 0x{:08x}...", jump_addr).unwrap();
+                        println!("Jumping to 0x{:08x}...", jump_addr);
+                        jump_big_core(jump_addr);
+                    }
+                    SerialMode::Cpu0Update => {
+                        if jump_addr as usize != CPU0_UPDATE_STAGING_ADDR
+                            || update_loaded_end <= CPU0_UPDATE_STAGING_ADDR
+                        {
+                            println!("Invalid CPU0 update image");
+                            return 1;
+                        }
 
-                println!("Jumping to 0x{:08x}...", jump_addr);
-
-                jump_big_core(jump_addr);
+                        let len = update_loaded_end - CPU0_UPDATE_STAGING_ADDR;
+                        println!(
+                            "Applying CPU0 firmware update: {} bytes 0x{:08x} -> 0x{:08x}",
+                            len, CPU0_UPDATE_STAGING_ADDR, CPU0_FIRMWARE_ADDR
+                        );
+                        apply_cpu0_update(len);
+                    }
+                }
             }
             _ => {
                 failures += 1;
@@ -203,6 +268,49 @@ pub fn litex_term_serial_boot() -> i32 {
             }
         }
     } // outer loop
+}
+
+fn cpu0_update_range_valid(load_addr: usize, len: usize) -> bool {
+    if len == 0 {
+        return true;
+    }
+
+    let Some(end) = load_addr.checked_add(len) else {
+        return false;
+    };
+
+    load_addr >= CPU0_UPDATE_STAGING_ADDR && end <= CPU0_UPDATE_STAGING_ADDR + CPU0_FIRMWARE_MAX_LEN
+}
+
+fn apply_cpu0_update(len: usize) -> ! {
+    if len == 0 || len > CPU0_FIRMWARE_MAX_LEN {
+        println!("Invalid CPU0 update length: {}", len);
+        loop {
+            unsafe {
+                asm!("wfi");
+            }
+        }
+    }
+
+    unsafe {
+        core::ptr::copy_nonoverlapping(
+            CPU0_UPDATE_TRAMPOLINE.as_ptr(),
+            CPU0_UPDATE_TRAMPOLINE_ADDR as *mut u8,
+            CPU0_UPDATE_TRAMPOLINE.len(),
+        );
+
+        asm!("fence rw, rw", "fence.i");
+
+        let trampoline: extern "C" fn(usize, usize, usize, usize) -> ! =
+            core::mem::transmute(CPU0_UPDATE_TRAMPOLINE_ADDR);
+
+        trampoline(
+            CPU0_UPDATE_STAGING_ADDR,
+            CPU0_FIRMWARE_ADDR,
+            len,
+            CPU0_FIRMWARE_ADDR,
+        );
+    }
 }
 
 fn check_ack() -> Ack {

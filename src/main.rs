@@ -37,9 +37,12 @@ pub mod boot;
 pub mod commands;
 #[allow(unused)]
 pub mod ddr_init;
+pub mod embassy_time_driver_impl;
+pub mod i2c;
 pub mod mailbox_console;
 pub mod readline;
 pub mod serial;
+pub mod time;
 
 pub mod rt;
 
@@ -61,6 +64,12 @@ pub const UART1_SCLK: u32 = 50_000_000;
 pub const UART2_SCLK: u32 = 50_000_000;
 pub const UART3_SCLK: u32 = 50_000_000;
 pub const UART4_SCLK: u32 = 50_000_000;
+
+pub const I2C0_CLK: u32 = 100_000_000;
+pub const I2C1_CLK: u32 = 100_000_000;
+pub const I2C2_CLK: u32 = 100_000_000;
+pub const I2C3_CLK: u32 = 100_000_000;
+pub const I2C4_CLK: u32 = 100_000_000;
 
 pub const DDRC_CPRE_CLK: u32 = 800_000_000;
 
@@ -415,6 +424,8 @@ unsafe extern "C" fn _start_rust() -> ! {
     }
 
     // blinky();
+
+    embassy_time_driver_impl::deactivate();
 
     boot::litex_term_serial_boot();
 

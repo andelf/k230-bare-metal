@@ -23,8 +23,20 @@ pub fn handle_command_line(line: &str) {
             println!("  pmu_gpio_set <65|66|71> <0|1> - set PMU LED GPIO");
             println!("  pmu_out1 <0|1> - set PMU OUT1 software level");
             println!("  led <off|red|green|blue|white|test> - control K230D Lite RGB LED");
+            println!("  time - print CLINT mtime based on 27 MHz timebase");
+            println!("  timer_irq <ms> - arm one-shot MachineTimer interrupt");
+            println!("  embassy_probe <ms> - verify Embassy time driver wake path");
+            println!("  i2c_dump <0-4> - dump DW_apb_i2c registers");
+            println!("  i2c0_init - configure I2C0 on pins 48/49 at 100 kHz");
+            println!("  i2c_scan <0-4|all> - scan I2C bus devices");
+            println!("  i2c_read8 <bus> <addr> <reg> [len] - read 8-bit register bytes");
+            println!("  bme680_id - read BME680 chip id on I2C0");
+            println!("  i2c0_levels - read PIN48/49 as GPIO open-drain levels");
+            println!("  i2c0_bb_scan - scan I2C0 using GPIO bitbang on PIN48/49");
+            println!("  i2c0_bb_bme680 - read BME680 chip id using GPIO bitbang");
             println!("  cpuid - print CPUID");
             println!("  serialboot - enter serial boot mode");
+            println!("  serialupdate - upload and replace CPU0 firmware.bin over serial");
             println!("  jump <address> - jump to address");
             println!("  jumpbig <address> - jump to address with CPU1, and set CPU0 to wfi state");
         }
@@ -144,8 +156,132 @@ pub fn handle_command_line(line: &str) {
             Some("test") => led_test(),
             _ => println!("led <off|red|green|blue|white|test>"),
         },
+        Some("time") => {
+            let ticks = crate::time::ticks();
+            println!(
+                "mtime={} us={} ms={} freq={}Hz",
+                ticks,
+                crate::time::ticks_to_us(ticks),
+                crate::time::ticks_to_ms(ticks),
+                crate::time::TIMEBASE_HZ
+            );
+        }
+        Some("timer_irq") => {
+            let ms = it.next().and_then(parse_number).unwrap_or(1000);
+            crate::embassy_time_driver_impl::deactivate();
+            let target = crate::time::set_machine_timer_after_ms(ms);
+            unsafe {
+                riscv::register::mie::set_mtimer();
+                riscv::register::mstatus::set_mie();
+            }
+            println!(
+                "MachineTimer armed: now={} target={} delay={}ms",
+                crate::time::ticks(),
+                target,
+                ms
+            );
+        }
+        Some("embassy_probe") => {
+            let ms = it.next().and_then(parse_number).unwrap_or(100);
+            crate::embassy_time_driver_impl::init();
+            let ok = crate::embassy_time_driver_impl::probe_wake_after_ms(ms);
+            println!(
+                "Embassy wake after {}ms: {}",
+                ms,
+                if ok { "ok" } else { "timeout" }
+            );
+        }
+        Some("i2c_dump") => {
+            let bus = it.next().and_then(parse_u8).unwrap_or(0);
+            match crate::i2c::bus(bus) {
+                Ok(i2c) => i2c.dump(),
+                Err(err) => print_i2c_error(err),
+            }
+        }
+        Some("i2c0_init") => {
+            crate::i2c::init_i2c0_pins_48_49();
+            match crate::i2c::bus(0).and_then(|i2c| i2c.init_standard(100_000)) {
+                Ok(()) => {
+                    println!("I2C0 initialized on PIN48=SCL PIN49=SDA at 100kHz");
+                    match crate::board_gpio::dump_pin(48) {
+                        Ok(dump) => println!("PIN48 io_cfg=0x{:08x}", dump.iomux),
+                        Err(_) => {}
+                    }
+                    match crate::board_gpio::dump_pin(49) {
+                        Ok(dump) => println!("PIN49 io_cfg=0x{:08x}", dump.iomux),
+                        Err(_) => {}
+                    }
+                }
+                Err(err) => print_i2c_error(err),
+            }
+        }
+        Some("i2c_scan") => match it.next() {
+            Some("all") => {
+                for bus in 0..=4 {
+                    scan_i2c_bus(bus);
+                }
+            }
+            Some(bus) => match parse_u8(bus) {
+                Some(bus) => scan_i2c_bus(bus),
+                None => println!("i2c_scan <0-4|all>"),
+            },
+            None => scan_i2c_bus(0),
+        },
+        Some("i2c_read8") => {
+            let bus = it.next().and_then(parse_u8);
+            let addr = it.next().and_then(parse_u8_number);
+            let reg = it.next().and_then(parse_u8_number);
+            let len = it.next().and_then(parse_u8_number).unwrap_or(1);
+            match (bus, addr, reg) {
+                (Some(bus), Some(addr), Some(reg)) => {
+                    if bus == 0 {
+                        crate::i2c::init_i2c0_pins_48_49();
+                    }
+                    let mut buf = [0u8; 32];
+                    let len = usize::from(len.min(buf.len() as u8));
+                    match crate::i2c::bus(bus).and_then(|i2c| {
+                        i2c.init_standard(100_000)?;
+                        i2c.read_mem8(addr, reg, &mut buf[..len])
+                    }) {
+                        Ok(()) => {
+                            print!("I2C{} 0x{:02x}[0x{:02x}]:", bus, addr, reg);
+                            for byte in &buf[..len] {
+                                print!(" 0x{:02x}", byte);
+                            }
+                            println!();
+                        }
+                        Err(err) => print_i2c_error(err),
+                    }
+                }
+                _ => println!("i2c_read8 <bus> <addr> <reg> [len]"),
+            }
+        }
+        Some("bme680_id") => {
+            crate::i2c::init_i2c0_pins_48_49();
+            match crate::i2c::bus(0).and_then(|i2c| {
+                i2c.init_standard(100_000)?;
+                let mut id = [0u8; 1];
+                let addr = if i2c.read_mem8(0x77, 0xd0, &mut id).is_ok() {
+                    0x77
+                } else {
+                    i2c.read_mem8(0x76, 0xd0, &mut id)?;
+                    0x76
+                };
+                println!("BME680 addr=0x{:02x} chip_id=0x{:02x}", addr, id[0]);
+                Ok(())
+            }) {
+                Ok(()) => {}
+                Err(err) => print_i2c_error(err),
+            }
+        }
+        Some("i2c0_levels") => crate::i2c::bitbang_i2c0_levels(),
+        Some("i2c0_bb_scan") => crate::i2c::bitbang_i2c0_scan(),
+        Some("i2c0_bb_bme680") => crate::i2c::bitbang_i2c0_bme680_id(),
         Some("serialboot") => {
             crate::boot::litex_term_serial_boot();
+        }
+        Some("serialupdate") => {
+            crate::boot::serial_firmware_update();
         }
         Some("mem_read") => {
             let address = it.next();
@@ -249,6 +385,32 @@ fn led_test() {
     }
 }
 
+fn scan_i2c_bus(bus: u8) {
+    if bus == 0 {
+        crate::i2c::init_i2c0_pins_48_49();
+    }
+    match crate::i2c::bus(bus).and_then(|i2c| {
+        i2c.init_standard(100_000)?;
+        println!("I2C{} devices:", bus);
+        let mut found = false;
+        for addr in 0x08..=0x77 {
+            if i2c.probe(addr).is_ok() {
+                found = true;
+                print!(" 0x{:02x}", addr);
+            }
+        }
+        if found {
+            println!();
+        } else {
+            println!(" none");
+        }
+        Ok(())
+    }) {
+        Ok(()) => {}
+        Err(err) => print_i2c_error(err),
+    }
+}
+
 pub fn parse_number(s: &str) -> Option<u64> {
     if s.starts_with("0x") || s.starts_with("0X") {
         u64::from_str_radix(&s[2..], 16).ok()
@@ -263,11 +425,26 @@ fn parse_u8(s: &str) -> Option<u8> {
     parse_number(s).and_then(|value| u8::try_from(value).ok())
 }
 
+fn parse_u8_number(s: &str) -> Option<u8> {
+    parse_number(s).and_then(|value| u8::try_from(value).ok())
+}
+
 fn parse_bool(s: &str) -> Option<bool> {
     match s {
         "0" | "low" | "off" => Some(false),
         "1" | "high" | "on" => Some(true),
         _ => None,
+    }
+}
+
+fn print_i2c_error(err: crate::i2c::Error) {
+    match err {
+        crate::i2c::Error::InvalidBus => println!("I2C error: invalid bus"),
+        crate::i2c::Error::InvalidAddress => println!("I2C error: invalid address"),
+        crate::i2c::Error::Timeout => println!("I2C error: timeout"),
+        crate::i2c::Error::TxAbort(source) => {
+            println!("I2C error: tx abort source=0x{:08x}", source)
+        }
     }
 }
 

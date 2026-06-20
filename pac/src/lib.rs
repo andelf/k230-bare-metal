@@ -24,6 +24,9 @@ pub mod uart;
 #[path = "iomux_v0.rs"]
 pub mod iomux;
 
+#[path = "i2c_dw.rs"]
+pub mod i2c;
+
 #[path = "pwm_v0.rs"]
 pub mod pwm;
 
@@ -31,7 +34,7 @@ pub mod pwm;
 pub mod tsensor;
 
 pub const PLIC_BASE: usize = 0x0000_000f_0000_0000;
-pub const CLINT_BASE: usize = PLIC_BASE + 0x0200_0000;
+pub const CLINT_BASE: usize = 0x0000_000f_0400_0000;
 
 pub const PLIC: plic::Plic = unsafe { plic::Plic::from_ptr((PLIC_BASE) as *mut ()) };
 pub const CLINT: clint::Clint = unsafe { clint::Clint::from_ptr((CLINT_BASE) as *mut ()) };
@@ -49,6 +52,12 @@ pub const PMU_IOMUX_BASE: usize = 0x9100_0080;
 
 pub const GPIO0: gpio::Gpio = unsafe { gpio::Gpio::from_ptr(0x9140_B000 as *mut ()) };
 pub const GPIO1: gpio::Gpio = unsafe { gpio::Gpio::from_ptr(0x9140_C000 as *mut ()) };
+
+pub const I2C0: i2c::I2c = unsafe { i2c::I2c::from_ptr(0x9140_5000 as *mut ()) };
+pub const I2C1: i2c::I2c = unsafe { i2c::I2c::from_ptr(0x9140_6000 as *mut ()) };
+pub const I2C2: i2c::I2c = unsafe { i2c::I2c::from_ptr(0x9140_7000 as *mut ()) };
+pub const I2C3: i2c::I2c = unsafe { i2c::I2c::from_ptr(0x9140_8000 as *mut ()) };
+pub const I2C4: i2c::I2c = unsafe { i2c::I2c::from_ptr(0x9140_9000 as *mut ()) };
 
 pub const UART0: uart::Uart = unsafe { uart::Uart::from_ptr(0x9140_0000 as *mut ()) };
 pub const UART1: uart::Uart = unsafe { uart::Uart::from_ptr(0x9140_1000 as *mut ()) };

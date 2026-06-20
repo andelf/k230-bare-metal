@@ -91,7 +91,11 @@ unsafe extern "riscv-interrupt-m" fn _start_trap_rust() {
     } else if mcause.is_interrupt()
         && mcause.code() == riscv::interrupt::Interrupt::MachineTimer as _
     {
+        let embassy_handled = crate::embassy_time_driver_impl::on_machine_timer_interrupt();
         println!("Machine Timer Interrupt");
+        if embassy_handled {
+            println!("Embassy time driver handled alarm");
+        }
 
         return;
     } else if mcause.is_interrupt()
@@ -159,11 +163,7 @@ unsafe extern "C" fn _early_init() {
     {
         use riscv::register::*;
 
-        mstatus::set_mie(); // enable global interrupt
-        mstatus::set_sie(); // and supervisor interrupt
-        mie::set_mext(); // and external interrupt
-        mie::set_msoft(); // and software interrupt
-        mie::set_mtimer(); // and timer interrupt
+        asm!("csrw mie, zero");
 
         mcounteren::set_cy(); // enable cycle counter
         mcounteren::set_tm(); // and time counter

@@ -26,6 +26,9 @@ SFL_ACK_ERROR = b"E"
 ANSI_CPR_QUERY = b"\x1b[6n"
 ANSI_CPR_RESPONSE = b"\x1b[24;80R"
 
+CPU0_UPDATE_STAGING_ADDR = 0x8020_0000
+CPU0_UPDATE_MAX_SIZE = 0x0008_0000
+
 
 def crc16(data: bytes) -> int:
     crc = 0
@@ -203,14 +206,19 @@ def monitor(port: serial.Serial) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("port", help="serial port, for example /dev/cu.usbmodem7E238F0602BE1")
-    parser.add_argument("--image", default="big-core.bin", type=Path, help="binary image to upload")
-    parser.add_argument("--address", default="0x01000000", help="load and jump address")
+    parser.add_argument("--image", type=Path, help="binary image to upload")
+    parser.add_argument("--address", help="load and jump address")
     parser.add_argument("--baudrate", "--speed", default=115200, type=int, help="serial baudrate")
-    parser.add_argument("--command", default="serialboot", help="shell command that enters SFL mode")
+    parser.add_argument("--command", help="shell command that enters SFL mode")
     parser.add_argument("--timeout", default=5.0, type=float, help="seconds to wait for SFL magic")
     parser.add_argument("--ack-timeout", default=3.0, type=float, help="seconds to wait for frame ACK")
     parser.add_argument("--frame-size", default=64, type=int, help="SFL payload size including 4-byte address")
     parser.add_argument("--retries", default=3, type=int, help="CRC retry count per frame")
+    parser.add_argument(
+        "--firmware-update",
+        action="store_true",
+        help="upload CPU0 firmware.bin to staging SRAM and replace the running shell firmware",
+    )
     parser.add_argument("--no-jump", action="store_true", help="upload only")
     parser.add_argument("--monitor", action="store_true", help="print serial output after jump")
     parser.add_argument("--quiet", action="store_true", help="hide bootloader text while waiting for magic")
@@ -220,14 +228,27 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    image = args.image
-    address = int(args.address, 0)
+    image = args.image or Path("firmware.bin" if args.firmware_update else "big-core.bin")
+    address_text = args.address or ("0x80200000" if args.firmware_update else "0x01000000")
+    command = args.command or ("serialupdate" if args.firmware_update else "serialboot")
+    address = int(address_text, 0)
 
     if not image.exists():
         raise FileNotFoundError(image)
 
+    if args.firmware_update:
+        size = image.stat().st_size
+        if address != CPU0_UPDATE_STAGING_ADDR:
+            raise ValueError(f"CPU0 firmware update address must be 0x{CPU0_UPDATE_STAGING_ADDR:08x}")
+        if size > CPU0_UPDATE_MAX_SIZE:
+            raise ValueError(
+                f"CPU0 firmware update image is too large: {size} > {CPU0_UPDATE_MAX_SIZE} bytes"
+            )
+        if image.suffix == ".img":
+            raise ValueError("CPU0 firmware update expects firmware.bin, not firmware.img")
+
     with serial.Serial(args.port, args.baudrate, timeout=0.02, write_timeout=3) as port:
-        enter_serialboot(port, args.command, args.timeout, not args.quiet, args.answer_cpr)
+        enter_serialboot(port, command, args.timeout, not args.quiet, args.answer_cpr)
         upload(port, image, address, args.frame_size, args.ack_timeout, args.retries)
 
         if args.no_jump:
