@@ -37,6 +37,8 @@ pub mod boot;
 pub mod commands;
 #[allow(unused)]
 pub mod ddr_init;
+pub mod embassy_led;
+pub mod embassy_runtime;
 pub mod embassy_time_driver_impl;
 pub mod i2c;
 pub mod mailbox_console;

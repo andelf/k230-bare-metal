@@ -100,11 +100,17 @@ K230> pin_dump 65
 K230> pin_dump 66
 K230> pin_dump 71
 K230> led test
+K230> embassy_led 2 120
 ```
 
 `led test` drives red, green, blue, white, and off in sequence. This has been verified
 on K230D hardware. The PMU GPIO command path is restricted to the schematic-backed LED
 pins `65`, `66`, and `71`; normal-domain `gpio_set` is limited to `GPIO0..GPIO63`.
+
+`embassy_led [cycles] [delay_ms]` runs the same RGB LED sequence through
+`embassy_time::Timer`. The current hardware test used `embassy_led 2 120`; the shell
+returned `Embassy RGB LED pattern done`, and the MachineTimer interrupt path reported
+`Embassy time driver handled alarm` for each awaited delay.
 
 ### Boot Log on UART0
 

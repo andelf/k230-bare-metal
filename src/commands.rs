@@ -26,6 +26,9 @@ pub fn handle_command_line(line: &str) {
             println!("  time - print CLINT mtime based on 27 MHz timebase");
             println!("  timer_irq <ms> - arm one-shot MachineTimer interrupt");
             println!("  embassy_probe <ms> - verify Embassy time driver wake path");
+            println!(
+                "  embassy_led [cycles] [delay_ms] - async RGB LED pattern using Embassy time"
+            );
             println!("  i2c_dump <0-4> - dump DW_apb_i2c registers");
             println!("  i2c0_init - configure I2C0 on pins 48/49 at 100 kHz");
             println!("  i2c_scan <0-4|all> - scan I2C bus devices");
@@ -190,6 +193,26 @@ pub fn handle_command_line(line: &str) {
                 ms,
                 if ok { "ok" } else { "timeout" }
             );
+        }
+        Some("embassy_led") => {
+            let cycles = it
+                .next()
+                .and_then(parse_number)
+                .and_then(|value| u32::try_from(value).ok())
+                .unwrap_or(crate::embassy_led::DEFAULT_CYCLES);
+            let delay_ms = it
+                .next()
+                .and_then(parse_number)
+                .unwrap_or(crate::embassy_led::DEFAULT_DELAY_MS);
+
+            println!(
+                "Embassy RGB LED pattern: cycles={} delay={}ms",
+                cycles, delay_ms
+            );
+            match crate::embassy_led::run(cycles, delay_ms) {
+                Ok(()) => println!("Embassy RGB LED pattern done"),
+                Err(_) => println!("Embassy RGB LED pattern failed"),
+            }
         }
         Some("i2c_dump") => {
             let bus = it.next().and_then(parse_u8).unwrap_or(0);
